@@ -9,6 +9,7 @@ import { LogIn, Layers, Mail, Lock, Eye, EyeOff, Loader2, KeyRound, AlertTriangl
 import { cn } from '../../lib/utils';
 
 import GoogleAuthModal from '../../components/common/GoogleAuthModal';
+import { API_URL } from '../../lib/api';
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -88,7 +89,7 @@ const Login: React.FC = () => {
   }, [location.search, navigate, toast, hydrateSession]);
 
   const handleGoogleConnect = () => {
-    setIsGoogleModalOpen(true);
+    window.location.href = `${API_URL}/google/connect`;
   };
 
   const handleResetSubmit = (e: React.FormEvent) => {

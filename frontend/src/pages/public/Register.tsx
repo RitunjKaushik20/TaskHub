@@ -97,6 +97,7 @@ const PasswordStrengthIndicator: React.FC<{ password?: string }> = ({ password }
 };
 
 import GoogleAuthModal from '../../components/common/GoogleAuthModal';
+import { API_URL } from '../../lib/api';
 
 const Register: React.FC = () => {
   const { register: registerAuth, hydrateSession } = useAuth();
@@ -177,7 +178,7 @@ const Register: React.FC = () => {
   }, [location.search, navigate, toast, hydrateSession]);
 
   const handleGoogleConnect = () => {
-    setIsGoogleModalOpen(true);
+    window.location.href = `${API_URL}/google/connect`;
   };
 
   return (
