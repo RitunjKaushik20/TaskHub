@@ -1,0 +1,237 @@
+generator client {
+  provider = "prisma-client-js"
+}
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  WORKER
+  BUSINESS
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  FROZEN
+}
+
+enum KycStatus {
+  UNVERIFIED
+  PENDING
+  VERIFIED
+}
+
+enum TaskStatus {
+  AVAILABLE
+  ASSIGNED
+  IN_PROGRESS
+  SUBMITTED
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+  PAID
+  COMPLETED
+  CANCELLED
+}
+
+enum TaskDifficulty {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+  EXPERT
+}
+
+enum SubmissionStatus {
+  PENDING
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+}
+
+enum ProofType {
+  FILE
+  LINK
+  TEXT
+  HYBRID
+}
+
+enum TransactionType {
+  TASK_PAYOUT
+  WITHDRAWAL
+  DEPOSIT_ESCROW
+  REFUND
+}
+
+enum TransactionStatus {
+  COMPLETED
+  PENDING
+  FAILED
+}
+
+enum WithdrawalMethod {
+  PAYPAL
+  BANK_TRANSFER
+  CRYPTO_USDT
+}
+
+enum WithdrawalStatus {
+  PENDING
+  APPROVED
+  COMPLETED
+  REJECTED
+}
+
+model User {
+  id           String      @id @default(uuid())
+  name         String
+  email        String      @unique
+  passwordHash String
+  role         UserRole    @default(WORKER)
+  companyName  String?
+  bio          String?
+  skills       String?
+  avatarUrl    String?
+  kycStatus    KycStatus   @default(UNVERIFIED)
+  status       UserStatus  @default(ACTIVE)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  refreshTokens       RefreshToken[]
+  postedTasks         Task[]               @relation("BusinessTasks")
+  submissions         Submission[]         @relation("WorkerSubmissions")
+  wallet              Wallet?
+  withdrawalRequests WithdrawalRequest[]
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@map("refresh_tokens")
+}
+
+model Task {
+  id                   String         @id @default(uuid())
+  title                String
+  description          String
+  instructions         String
+  category             String
+  difficulty           TaskDifficulty @default(BEGINNER)
+  reward               Float
+  currency             String         @default("USD")
+  workerLimit          Int            @default(1)
+  assignedWorkersCount Int            @default(0)
+  deadline             DateTime
+  requiredSkills       String
+  proofRequirements    String
+  status               TaskStatus     @default(AVAILABLE)
+
+  businessId           String
+  business             User           @relation("BusinessTasks", fields: [businessId], references: [id], onDelete: Cascade)
+
+  submissions          Submission[]
+  messages             ChatMessage[]
+
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
+
+  @@map("tasks")
+}
+
+model Submission {
+  id              String           @id @default(uuid())
+  taskId          String
+  task            Task             @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  workerId        String
+  worker          User             @relation("WorkerSubmissions", fields: [workerId], references: [id], onDelete: Cascade)
+  proofType       ProofType        @default(LINK)
+  proofContent    String
+  fileUrl         String?
+  linkUrl         String?
+  status          SubmissionStatus @default(UNDER_REVIEW)
+  qualityScore    Int?
+  feedback        String?
+  rejectionReason String?
+  rewardAmount    Float
+  submittedAt     DateTime         @default(now())
+  reviewedAt      DateTime?
+
+  @@map("submissions")
+}
+
+model ChatMessage {
+  id         String   @id @default(uuid())
+  taskId     String
+  task       Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  senderId   String
+  senderName String
+  senderRole UserRole
+  message    String
+  fileUrl    String?
+  fileName   String?
+  timestamp  DateTime @default(now())
+
+  @@map("chat_messages")
+}
+
+model Wallet {
+  id               String        @id @default(uuid())
+  userId           String        @unique
+  user             User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  availableBalance Float         @default(0.0)
+  pendingBalance   Float         @default(0.0)
+  totalEarned      Float         @default(0.0)
+  totalWithdrawn   Float         @default(0.0)
+  transactions     Transaction[]
+
+  @@map("wallets")
+}
+
+model Transaction {
+  id          String            @id @default(uuid())
+  walletId    String
+  wallet      Wallet            @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  type        TransactionType
+  amount      Float
+  status      TransactionStatus @default(COMPLETED)
+  description String
+  referenceId String?
+  createdAt   DateTime          @default(now())
+
+  @@map("transactions")
+}
+
+model WithdrawalRequest {
+  id             String           @id @default(uuid())
+  workerId       String
+  worker         User             @relation(fields: [workerId], references: [id], onDelete: Cascade)
+  amount         Float
+  method         WithdrawalMethod
+  accountDetails String
+  status         WithdrawalStatus @default(PENDING)
+  createdAt      DateTime         @default(now())
+  processedAt    DateTime?
+
+  @@map("withdrawal_requests")
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  actorName String
+  actorRole UserRole
+  action    String
+  target    String
+  ipAddress String
+  timestamp DateTime @default(now())
+
+  @@map("audit_logs")
+}
