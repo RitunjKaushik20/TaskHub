@@ -24,7 +24,8 @@ import { initSocketIO } from './lib/socket';
 const app = express();
 const server = http.createServer(app);
 const PORT = process.env.PORT || 8000;
-const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
+const rawFrontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+const FRONTEND_URL = rawFrontendUrl.trim().replace(/\/+$/, '');
 const allowedOrigins = [FRONTEND_URL, 'http://localhost:5173', 'http://127.0.0.1:5173'];
 
 // Dynamic CORS configuration allowing Vercel, localhost, and custom frontend domains with credentials
