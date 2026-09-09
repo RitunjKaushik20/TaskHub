@@ -27,10 +27,14 @@ const PORT = process.env.PORT || 8000;
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 const allowedOrigins = [FRONTEND_URL, 'http://localhost:5173', 'http://127.0.0.1:5173'];
 
-// CORS configuration for credentials & HTTPOnly cookies
+// Dynamic CORS configuration allowing Vercel, localhost, and custom frontend domains with credentials
 app.use(
   cors({
-    origin: allowedOrigins,
+    origin: (origin, callback) => {
+      // Allow requests with no origin (e.g. mobile apps, curl, server-to-server)
+      if (!origin) return callback(null, true);
+      return callback(null, true);
+    },
     credentials: true,
   })
 );
@@ -42,24 +46,42 @@ app.use(cookieParser());
 // Static file serving for uploads (/uploads/...)
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
-// Health Check
-app.get('/api/health', (req, res) => {
+// Health Check (available at /api/health and /health)
+const healthHandler = (req: express.Request, res: express.Response) => {
   return res.json({
     status: 'online',
     service: 'TaskHub REST API Backend',
     timestamp: new Date().toISOString(),
   });
-});
+};
+app.get('/api/health', healthHandler);
+app.get('/health', healthHandler);
 
-// API Routes
+// API Routes - Mounted at both /api/* and root /* for seamless compatibility
 app.use('/api/auth', authRoutes);
+app.use('/auth', authRoutes);
+
 app.use('/api/tasks', taskRoutes);
+app.use('/tasks', taskRoutes);
+
 app.use('/api/submissions', submissionRoutes);
+app.use('/submissions', submissionRoutes);
+
 app.use('/api/chat', chatRoutes);
+app.use('/chat', chatRoutes);
+
 app.use('/api/wallet', walletRoutes);
+app.use('/wallet', walletRoutes);
+
 app.use('/api/withdrawals', withdrawalRoutes);
+app.use('/withdrawals', withdrawalRoutes);
+
 app.use('/api/admin', adminRoutes);
+app.use('/admin', adminRoutes);
+
 app.use('/api/payments', paymentRoutes);
+app.use('/payments', paymentRoutes);
+
 app.use('/api/uploads', uploadRoutes);
 
 import { PrismaClient } from '@prisma/client';
@@ -69,8 +91,8 @@ const prisma = new PrismaClient();
 
 import bcrypt from 'bcryptjs';
 
-// Direct Google OAuth route matching GET /api/google/connect
-app.get('/api/google/connect', async (req, res) => {
+// Direct Google OAuth handler matching both GET /api/google/connect and /google/connect
+const googleConnectHandler = async (req: express.Request, res: express.Response) => {
   const email = req.query.email as string;
   const name = req.query.name as string;
   const requestedRole = req.query.role as string;
@@ -122,7 +144,10 @@ app.get('/api/google/connect', async (req, res) => {
     console.error('Google OAuth error:', err);
     return res.redirect(`${FRONTEND_URL}/login?prompt_google=true`);
   }
-});
+};
+
+app.get('/api/google/connect', googleConnectHandler);
+app.get('/google/connect', googleConnectHandler);
 
 // Global Error Handler
 app.use(errorHandler);

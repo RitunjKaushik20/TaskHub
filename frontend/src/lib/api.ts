@@ -1,10 +1,8 @@
 import axios, { AxiosError, type InternalAxiosRequestConfig } from 'axios';
 import type { ApiResponse } from '../types';
 
-const rawApiUrl = import.meta.env.VITE_API_URL || '/api';
-export const API_URL = rawApiUrl.endsWith('/api') 
-  ? rawApiUrl 
-  : `${rawApiUrl.replace(/\/$/, '')}/api`;
+const trimmed = (import.meta.env.VITE_API_URL || '/api').trim().replace(/\/+$/, '');
+export const API_URL = trimmed.endsWith('/api') ? trimmed : `${trimmed}/api`;
 
 export const api = axios.create({
   baseURL: API_URL,
