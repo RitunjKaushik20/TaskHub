@@ -50,26 +50,26 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         {toasts.map((t) => (
           <div
             key={t.id}
-            className={`pointer-events-auto flex items-start p-4 rounded-xl shadow-2xl border transition-all duration-300 transform translate-y-0 opacity-100 ${
+            className={`pointer-events-auto flex items-start p-4 rounded-2xl shadow-2xl border border-slate-200 bg-white text-slate-900 transition-all duration-300 transform translate-y-0 opacity-100 ${
               t.type === 'success'
-                ? 'bg-slate-900/90 border-emerald-500/50 text-emerald-100'
+                ? 'border-l-4 border-l-emerald-500'
                 : t.type === 'error'
-                ? 'bg-slate-900/90 border-rose-500/50 text-rose-100'
-                : 'bg-slate-900/90 border-cyan-500/50 text-cyan-100'
+                ? 'border-l-4 border-l-rose-500'
+                : 'border-l-4 border-l-indigo-500'
             }`}
           >
             <div className="mr-3 mt-0.5">
-              {t.type === 'success' && <CheckCircle2 className="w-5 h-5 text-emerald-400" />}
-              {t.type === 'error' && <AlertCircle className="w-5 h-5 text-rose-400" />}
-              {t.type === 'info' && <Info className="w-5 h-5 text-cyan-400" />}
+              {t.type === 'success' && <CheckCircle2 className="w-5 h-5 text-emerald-600" />}
+              {t.type === 'error' && <AlertCircle className="w-5 h-5 text-rose-600" />}
+              {t.type === 'info' && <Info className="w-5 h-5 text-indigo-600" />}
             </div>
             <div className="flex-1 min-w-0 pr-2">
-              <h4 className="text-sm font-semibold leading-tight">{t.title}</h4>
-              {t.message && <p className="text-xs text-slate-400 mt-1">{t.message}</p>}
+              <h4 className="text-slate-900 font-bold text-sm leading-tight">{t.title}</h4>
+              {t.message && <p className="text-slate-600 text-xs mt-0.5">{t.message}</p>}
             </div>
             <button
               onClick={() => removeToast(t.id)}
-              className="text-slate-400 hover:text-slate-200 transition-colors"
+              className="text-slate-400 hover:text-slate-700 transition-colors"
             >
               <X className="w-4 h-4" />
             </button>
