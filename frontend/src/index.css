@@ -33,9 +33,21 @@ h1, h2, h3, h4, h5, h6 {
   color: #0f172a;
 }
 
+body, p {
+  color: #334155;
+}
+
 label {
   color: #0f172a;
   font-weight: 600;
+}
+
+input, textarea, select {
+  color: #0f172a;
+}
+
+input::placeholder, textarea::placeholder {
+  color: #64748b;
 }
 
 /* Clean White Card Panels & Soft Shadows */
