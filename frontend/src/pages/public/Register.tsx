@@ -183,29 +183,29 @@ const Register: React.FC = () => {
 
   return (
     <div className="min-h-[85vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full p-8 rounded-3xl glass-panel border border-slate-800 space-y-6 shadow-2xl relative overflow-hidden backdrop-blur-xl">
+      <div className="max-w-md w-full p-8 rounded-3xl bg-white border border-slate-200 space-y-6 shadow-xl relative overflow-hidden">
         
         {/* Top Glow Accent */}
-        <div className="absolute -top-24 -right-24 w-48 h-48 bg-brand-500/20 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-brand-accent/20 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -top-24 -right-24 w-48 h-48 bg-brand-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-brand-accent/10 rounded-full blur-3xl pointer-events-none" />
 
         {/* Header */}
         <div className="text-center space-y-2 relative z-10">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-brand-600 via-indigo-600 to-brand-accent p-0.5 mx-auto shadow-xl shadow-brand-500/20">
-            <div className="w-full h-full bg-slate-950 rounded-[14px] flex items-center justify-center">
-              <UserPlus className="w-7 h-7 text-brand-500" />
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-brand-600 via-indigo-600 to-brand-accent p-0.5 mx-auto shadow-lg shadow-brand-500/10">
+            <div className="w-full h-full bg-slate-100 rounded-[14px] flex items-center justify-center">
+              <UserPlus className="w-7 h-7 text-brand-600" />
             </div>
           </div>
-          <h2 className="text-2xl font-extrabold text-white tracking-tight">Create TaskHub Account</h2>
-          <p className="text-xs text-slate-400">Join the decentralized human micro-work ecosystem</p>
+          <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">Create TaskHub Account</h2>
+          <p className="text-xs text-slate-600">Join the decentralized human micro-work ecosystem</p>
         </div>
 
         {/* Mode Switcher Tabs */}
-        <div className="flex bg-slate-950 rounded-xl p-1 border border-slate-800 relative z-10">
+        <div className="flex bg-slate-100 rounded-xl p-1 border border-slate-200 relative z-10">
           <button
             type="button"
             onClick={() => navigate('/login')}
-            className="flex-1 py-2 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 transition-all"
+            className="flex-1 py-2 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 transition-all"
           >
             Login
           </button>
@@ -219,23 +219,23 @@ const Register: React.FC = () => {
 
         {/* Account Role Selection */}
         <div className="space-y-1.5 relative z-10">
-          <label className="block text-xs font-semibold text-slate-300">Select Account Type</label>
+          <label className="block text-xs font-bold text-slate-900">Select Account Type</label>
           <div className="grid grid-cols-2 gap-3">
             <button
               type="button"
               onClick={() => setValue('role', 'WORKER')}
               className={`p-3 rounded-2xl border text-left flex items-center gap-3 transition-all ${
                 selectedRole === 'WORKER'
-                  ? 'bg-emerald-500/10 border-emerald-500 text-emerald-300 shadow-md ring-1 ring-emerald-500/30'
-                  : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200'
+                  ? 'bg-emerald-50 border-emerald-500 text-emerald-900 shadow-sm ring-2 ring-emerald-500/20'
+                  : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
               }`}
             >
-              <div className={`p-2 rounded-xl ${selectedRole === 'WORKER' ? 'bg-emerald-500 text-slate-950 font-bold' : 'bg-slate-900'}`}>
+              <div className={`p-2 rounded-xl ${selectedRole === 'WORKER' ? 'bg-emerald-600 text-white font-bold' : 'bg-slate-200 text-slate-700'}`}>
                 <User className="w-4 h-4" />
               </div>
               <div>
-                <span className="text-xs font-bold block text-white">Worker</span>
-                <span className="text-[10px] text-slate-400">Earn from tasks</span>
+                <span className="text-xs font-bold block text-slate-900">Worker</span>
+                <span className="text-[10px] text-slate-600 font-medium">Earn from tasks</span>
               </div>
             </button>
 
@@ -244,16 +244,16 @@ const Register: React.FC = () => {
               onClick={() => setValue('role', 'BUSINESS')}
               className={`p-3 rounded-2xl border text-left flex items-center gap-3 transition-all ${
                 selectedRole === 'BUSINESS'
-                  ? 'bg-brand-500/10 border-brand-500 text-brand-300 shadow-md ring-1 ring-brand-500/30'
-                  : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200'
+                  ? 'bg-indigo-50 border-indigo-500 text-indigo-900 shadow-sm ring-2 ring-indigo-500/20'
+                  : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
               }`}
             >
-              <div className={`p-2 rounded-xl ${selectedRole === 'BUSINESS' ? 'bg-brand-500 text-white font-bold' : 'bg-slate-900'}`}>
+              <div className={`p-2 rounded-xl ${selectedRole === 'BUSINESS' ? 'bg-indigo-600 text-white font-bold' : 'bg-slate-200 text-slate-700'}`}>
                 <Briefcase className="w-4 h-4" />
               </div>
               <div>
-                <span className="text-xs font-bold block text-white">Business</span>
-                <span className="text-[10px] text-slate-400">Post & verify tasks</span>
+                <span className="text-xs font-bold block text-slate-900">Business</span>
+                <span className="text-[10px] text-slate-600 font-medium">Post & verify tasks</span>
               </div>
             </button>
           </div>
@@ -263,7 +263,7 @@ const Register: React.FC = () => {
         <button
           type="button"
           onClick={handleGoogleConnect}
-          className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl bg-slate-950 border border-slate-800 hover:border-slate-700 text-slate-200 text-xs font-semibold transition-all hover:bg-slate-900 relative z-10 shadow-sm"
+          className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl bg-white border border-slate-300 hover:border-slate-400 text-slate-900 text-xs font-semibold transition-all hover:bg-slate-50 relative z-10 shadow-sm"
         >
           <svg className="w-4 h-4" viewBox="0 0 24 24">
             <path
@@ -287,8 +287,8 @@ const Register: React.FC = () => {
         </button>
 
         <div className="relative flex items-center justify-center relative z-10">
-          <div className="border-t border-slate-800 w-full" />
-          <span className="bg-slate-900 px-3 text-[10px] uppercase font-bold text-slate-500 absolute">
+          <div className="border-t border-slate-200 w-full" />
+          <span className="bg-white px-3 text-[10px] uppercase font-bold text-slate-500 absolute">
             Or fill registration details
           </span>
         </div>
@@ -296,42 +296,42 @@ const Register: React.FC = () => {
         {/* Main Form */}
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 relative z-10">
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1.5">Full Name</label>
+            <label className="block text-xs font-bold text-slate-900 mb-1.5">Full Name</label>
             <div className="relative">
-              <User className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 z-10 pointer-events-none" />
+              <User className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 z-10 pointer-events-none" />
               <input
                 type="text"
                 {...register('name')}
                 placeholder="Enter your full name"
                 className={cn(
-                  "w-full glass-input !pl-11 !pr-4 py-3 text-xs rounded-xl transition-all text-white placeholder:text-slate-500 bg-slate-950/80",
-                  errors.name ? "border-rose-500 focus:ring-rose-500/20" : "border-slate-800"
+                  "w-full glass-input !pl-11 !pr-4 py-3 text-xs rounded-xl transition-all text-slate-900 placeholder:text-slate-400 bg-white border-slate-300",
+                  errors.name ? "border-rose-500 focus:ring-rose-500/20" : "border-slate-300"
                 )}
               />
             </div>
             {errors.name && (
-              <p className="text-[10px] text-rose-400 mt-1 flex items-center gap-1">
+              <p className="text-[10px] text-rose-500 mt-1 flex items-center gap-1 font-medium">
                 <AlertTriangle className="w-3 h-3" /> {errors.name.message}
               </p>
             )}
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1.5">Email Address</label>
+            <label className="block text-xs font-bold text-slate-900 mb-1.5">Email Address</label>
             <div className="relative">
-              <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 z-10 pointer-events-none" />
+              <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 z-10 pointer-events-none" />
               <input
                 type="email"
                 {...register('email')}
                 placeholder="name@example.com"
                 className={cn(
-                  "w-full glass-input !pl-11 !pr-4 py-3 text-xs rounded-xl transition-all text-white placeholder:text-slate-500 bg-slate-950/80",
-                  errors.email ? "border-rose-500 focus:ring-rose-500/20" : "border-slate-800"
+                  "w-full glass-input !pl-11 !pr-4 py-3 text-xs rounded-xl transition-all text-slate-900 placeholder:text-slate-400 bg-white border-slate-300",
+                  errors.email ? "border-rose-500 focus:ring-rose-500/20" : "border-slate-300"
                 )}
               />
             </div>
             {errors.email && (
-              <p className="text-[10px] text-rose-400 mt-1 flex items-center gap-1">
+              <p className="text-[10px] text-rose-500 mt-1 flex items-center gap-1 font-medium">
                 <AlertTriangle className="w-3 h-3" /> {errors.email.message}
               </p>
             )}
@@ -340,73 +340,73 @@ const Register: React.FC = () => {
           {/* Conditional Company Name Field for BUSINESS role */}
           {selectedRole === 'BUSINESS' && (
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+              <label className="block text-xs font-bold text-slate-900 mb-1.5">
                 Company Name <span className="text-slate-500 font-normal">(Optional)</span>
               </label>
               <div className="relative">
-                <Building className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 z-10 pointer-events-none" />
+                <Building className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 z-10 pointer-events-none" />
                 <input
                   type="text"
                   {...register('companyName')}
                   placeholder="CyberNet AI Labs Inc."
-                  className="w-full glass-input !pl-11 !pr-4 py-3 text-xs rounded-xl border-slate-800 text-white placeholder:text-slate-500 bg-slate-950/80"
+                  className="w-full glass-input !pl-11 !pr-4 py-3 text-xs rounded-xl border-slate-300 text-slate-900 placeholder:text-slate-400 bg-white"
                 />
               </div>
             </div>
           )}
 
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1.5">Password</label>
+            <label className="block text-xs font-bold text-slate-900 mb-1.5">Password</label>
             <div className="relative">
-              <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 z-10 pointer-events-none" />
+              <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 z-10 pointer-events-none" />
               <input
                 type={showPassword ? "text" : "password"}
                 {...register('password')}
                 placeholder="••••••••"
                 className={cn(
-                  "w-full glass-input !pl-11 !pr-12 py-3 text-xs rounded-xl transition-all text-white placeholder:text-slate-500 bg-slate-950/80",
-                  errors.password ? "border-rose-500 focus:ring-rose-500/20" : "border-slate-800"
+                  "w-full glass-input !pl-11 !pr-12 py-3 text-xs rounded-xl transition-all text-slate-900 placeholder:text-slate-400 bg-white border-slate-300",
+                  errors.password ? "border-rose-500 focus:ring-rose-500/20" : "border-slate-300"
                 )}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition-colors z-10"
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 transition-colors z-10"
               >
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
             <PasswordStrengthIndicator password={watchPassword} />
             {errors.password && (
-              <p className="text-[10px] text-rose-400 mt-1 flex items-center gap-1">
+              <p className="text-[10px] text-rose-500 mt-1 flex items-center gap-1 font-medium">
                 <AlertTriangle className="w-3 h-3" /> {errors.password.message}
               </p>
             )}
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1.5">Confirm Password</label>
+            <label className="block text-xs font-bold text-slate-900 mb-1.5">Confirm Password</label>
             <div className="relative">
-              <Shield className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 z-10 pointer-events-none" />
+              <Shield className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 z-10 pointer-events-none" />
               <input
                 type={showConfirmPassword ? "text" : "password"}
                 {...register('confirmPassword')}
                 placeholder="••••••••"
                 className={cn(
-                  "w-full glass-input !pl-11 !pr-12 py-3 text-xs rounded-xl transition-all text-white placeholder:text-slate-500 bg-slate-950/80",
-                  errors.confirmPassword ? "border-rose-500 focus:ring-rose-500/20" : "border-slate-800"
+                  "w-full glass-input !pl-11 !pr-12 py-3 text-xs rounded-xl transition-all text-slate-900 placeholder:text-slate-400 bg-white border-slate-300",
+                  errors.confirmPassword ? "border-rose-500 focus:ring-rose-500/20" : "border-slate-300"
                 )}
               />
               <button
                 type="button"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition-colors z-10"
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 transition-colors z-10"
               >
                 {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
             {errors.confirmPassword && (
-              <p className="text-[10px] text-rose-400 mt-1 flex items-center gap-1">
+              <p className="text-[10px] text-rose-500 mt-1 flex items-center gap-1 font-medium">
                 <AlertTriangle className="w-3 h-3" /> {errors.confirmPassword.message}
               </p>
             )}
@@ -417,21 +417,21 @@ const Register: React.FC = () => {
               <input
                 type="checkbox"
                 {...register('agreeToTerms')}
-                className="w-4 h-4 mt-0.5 rounded border-slate-800 bg-slate-950 text-brand-500 focus:ring-brand-500 focus:ring-offset-0"
+                className="w-4 h-4 mt-0.5 rounded border-slate-300 bg-white text-brand-500 focus:ring-brand-500 focus:ring-offset-0"
               />
-              <span className="text-xs text-slate-400 leading-tight">
+              <span className="text-xs text-slate-700 leading-tight font-medium">
                 I agree to TaskHub's{' '}
-                <a href="#" className="text-brand-accent hover:underline">
+                <a href="#" className="text-brand-accent hover:underline font-semibold">
                   Terms of Service
                 </a>{' '}
                 &{' '}
-                <a href="#" className="text-brand-accent hover:underline">
+                <a href="#" className="text-brand-accent hover:underline font-semibold">
                   Privacy Policy
                 </a>
               </span>
             </label>
             {errors.agreeToTerms && (
-              <p className="text-[10px] text-rose-400 mt-1 flex items-center gap-1">
+              <p className="text-[10px] text-rose-500 mt-1 flex items-center gap-1 font-medium">
                 <AlertTriangle className="w-3 h-3" /> {errors.agreeToTerms.message}
               </p>
             )}
@@ -454,7 +454,7 @@ const Register: React.FC = () => {
           </button>
         </form>
 
-        <p className="text-center text-xs text-slate-400 relative z-10">
+        <p className="text-center text-xs text-slate-600 relative z-10">
           Already registered?{' '}
           <Link to="/login" className="text-brand-accent font-semibold hover:underline">
             Sign in here

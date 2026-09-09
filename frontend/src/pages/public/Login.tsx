@@ -108,23 +108,23 @@ const Login: React.FC = () => {
 
   return (
     <div className="min-h-[85vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full p-8 rounded-3xl glass-panel border border-slate-800 space-y-6 shadow-2xl relative overflow-hidden backdrop-blur-xl">
+      <div className="max-w-md w-full p-8 rounded-3xl bg-white border border-slate-200 space-y-6 shadow-xl relative overflow-hidden">
         
         {/* Top Glow Accent */}
-        <div className="absolute -top-24 -left-24 w-48 h-48 bg-brand-500/20 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-24 -right-24 w-48 h-48 bg-brand-accent/20 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -top-24 -left-24 w-48 h-48 bg-brand-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-24 -right-24 w-48 h-48 bg-brand-accent/10 rounded-full blur-3xl pointer-events-none" />
 
         {/* Header */}
         <div className="text-center space-y-2 relative z-10">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-brand-600 via-indigo-600 to-brand-accent p-0.5 mx-auto shadow-xl shadow-brand-500/20">
-            <div className="w-full h-full bg-slate-950 rounded-[14px] flex items-center justify-center">
-              <Layers className="w-7 h-7 text-brand-500" />
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-brand-600 via-indigo-600 to-brand-accent p-0.5 mx-auto shadow-lg shadow-brand-500/10">
+            <div className="w-full h-full bg-slate-100 rounded-[14px] flex items-center justify-center">
+              <Layers className="w-7 h-7 text-brand-600" />
             </div>
           </div>
-          <h2 className="text-2xl font-extrabold text-white tracking-tight">
+          <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">
             {isResetMode ? 'Recover Password' : 'Welcome Back'}
           </h2>
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-slate-600">
             {isResetMode
               ? 'Enter your email to receive recovery instructions'
               : 'Sign in to access your micro-work dashboard & wallet'}
@@ -136,21 +136,21 @@ const Login: React.FC = () => {
           <form onSubmit={handleResetSubmit} className="space-y-4 relative z-10 animate-in fade-in-50 duration-300">
             {resetSent ? (
               <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-center space-y-2">
-                <p className="text-xs font-semibold text-emerald-300">Reset email dispatched!</p>
-                <p className="text-[11px] text-slate-400">Redirecting to sign-in screen...</p>
+                <p className="text-xs font-semibold text-emerald-700">Reset email dispatched!</p>
+                <p className="text-[11px] text-slate-500">Redirecting to sign-in screen...</p>
               </div>
             ) : (
               <>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">Email Address</label>
+                  <label className="block text-xs font-bold text-slate-900 mb-1.5">Email Address</label>
                   <div className="relative">
-                    <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 z-10 pointer-events-none" />
+                    <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 z-10 pointer-events-none" />
                     <input
                       type="email"
                       value={resetEmail}
                       onChange={(e) => setResetEmail(e.target.value)}
                       placeholder="name@example.com"
-                      className="w-full glass-input !pl-11 !pr-4 py-3 text-xs rounded-xl text-white placeholder:text-slate-500 bg-slate-950/80"
+                      className="w-full glass-input !pl-11 !pr-4 py-3 text-xs rounded-xl text-slate-900 placeholder:text-slate-400 bg-white border-slate-300"
                     />
                   </div>
                 </div>
@@ -177,7 +177,7 @@ const Login: React.FC = () => {
         ) : (
           <>
             {/* Mode Switcher Tabs */}
-            <div className="flex bg-slate-950 rounded-xl p-1 border border-slate-800 relative z-10">
+            <div className="flex bg-slate-100 rounded-xl p-1 border border-slate-200 relative z-10">
               <button
                 type="button"
                 className="flex-1 py-2 rounded-lg text-xs font-bold bg-brand-600 text-white shadow-md transition-all"
@@ -187,7 +187,7 @@ const Login: React.FC = () => {
               <button
                 type="button"
                 onClick={() => navigate('/register')}
-                className="flex-1 py-2 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 transition-all"
+                className="flex-1 py-2 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 transition-all"
               >
                 Create Account
               </button>
@@ -197,7 +197,7 @@ const Login: React.FC = () => {
             <button
               type="button"
               onClick={handleGoogleConnect}
-              className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl bg-slate-950 border border-slate-800 hover:border-slate-700 text-slate-200 text-xs font-semibold transition-all hover:bg-slate-900 relative z-10 shadow-sm"
+              className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl bg-white border border-slate-300 hover:border-slate-400 text-slate-900 text-xs font-semibold transition-all hover:bg-slate-50 relative z-10 shadow-sm"
             >
               <svg className="w-4 h-4" viewBox="0 0 24 24">
                 <path
@@ -221,8 +221,8 @@ const Login: React.FC = () => {
             </button>
 
             <div className="relative flex items-center justify-center relative z-10">
-              <div className="border-t border-slate-800 w-full" />
-              <span className="bg-slate-900 px-3 text-[10px] uppercase font-bold text-slate-500 absolute">
+              <div className="border-t border-slate-200 w-full" />
+              <span className="bg-white px-3 text-[10px] uppercase font-bold text-slate-500 absolute">
                 Or sign in with email
               </span>
             </div>
@@ -230,49 +230,49 @@ const Login: React.FC = () => {
             {/* Form */}
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 relative z-10">
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5">Email Address</label>
+                <label className="block text-xs font-bold text-slate-900 mb-1.5">Email Address</label>
                 <div className="relative">
-                  <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 z-10 pointer-events-none" />
+                  <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 z-10 pointer-events-none" />
                   <input
                     type="email"
                     {...register('email')}
                     placeholder="name@example.com"
                     className={cn(
-                      "w-full glass-input !pl-11 !pr-4 py-3 text-xs rounded-xl transition-all text-white placeholder:text-slate-500 bg-slate-950/80",
-                      errors.email ? "border-rose-500 focus:ring-rose-500/20" : "border-slate-800"
+                      "w-full glass-input !pl-11 !pr-4 py-3 text-xs rounded-xl transition-all text-slate-900 placeholder:text-slate-400 bg-white border-slate-300",
+                      errors.email ? "border-rose-500 focus:ring-rose-500/20" : "border-slate-300"
                     )}
                   />
                 </div>
                 {errors.email && (
-                  <p className="text-[10px] text-rose-400 mt-1 flex items-center gap-1">
+                  <p className="text-[10px] text-rose-500 mt-1 flex items-center gap-1 font-medium">
                     <AlertTriangle className="w-3 h-3" /> {errors.email.message}
                   </p>
                 )}
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5">Password</label>
+                <label className="block text-xs font-bold text-slate-900 mb-1.5">Password</label>
                 <div className="relative">
-                  <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 z-10 pointer-events-none" />
+                  <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 z-10 pointer-events-none" />
                   <input
                     type={showPassword ? "text" : "password"}
                     {...register('password')}
                     placeholder="••••••••"
                     className={cn(
-                      "w-full glass-input !pl-11 !pr-12 py-3 text-xs rounded-xl transition-all text-white placeholder:text-slate-500 bg-slate-950/80",
-                      errors.password ? "border-rose-500 focus:ring-rose-500/20" : "border-slate-800"
+                      "w-full glass-input !pl-11 !pr-12 py-3 text-xs rounded-xl transition-all text-slate-900 placeholder:text-slate-400 bg-white border-slate-300",
+                      errors.password ? "border-rose-500 focus:ring-rose-500/20" : "border-slate-300"
                     )}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition-colors z-10"
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 transition-colors z-10"
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
                 {errors.password && (
-                  <p className="text-[10px] text-rose-400 mt-1 flex items-center gap-1">
+                  <p className="text-[10px] text-rose-500 mt-1 flex items-center gap-1 font-medium">
                     <AlertTriangle className="w-3 h-3" /> {errors.password.message}
                   </p>
                 )}
@@ -284,9 +284,9 @@ const Login: React.FC = () => {
                     type="checkbox"
                     checked={rememberMe}
                     onChange={(e) => setRememberMe(e.target.checked)}
-                    className="w-4 h-4 rounded border-slate-800 bg-slate-950 text-brand-500 focus:ring-brand-500 focus:ring-offset-0"
+                    className="w-4 h-4 rounded border-slate-300 bg-white text-brand-500 focus:ring-brand-500 focus:ring-offset-0"
                   />
-                  <span className="text-slate-400">Remember me</span>
+                  <span className="text-slate-700 font-medium">Remember me</span>
                 </label>
                 <button
                   type="button"
@@ -314,7 +314,7 @@ const Login: React.FC = () => {
               </button>
             </form>
 
-            <p className="text-center text-xs text-slate-400 relative z-10">
+            <p className="text-center text-xs text-slate-600 relative z-10">
               Don't have an account?{' '}
               <Link to="/register" className="text-brand-accent font-semibold hover:underline">
                 Create an account

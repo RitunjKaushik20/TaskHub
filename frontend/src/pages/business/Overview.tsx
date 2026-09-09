@@ -41,19 +41,19 @@ const Overview: React.FC = () => {
   return (
     <div className="space-y-8">
       {/* Welcome Header */}
-      <div className="p-6 rounded-3xl glass-panel border border-brand-500/30 bg-gradient-to-r from-brand-950/50 via-slate-900 to-dark-bg flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div className="p-6 rounded-3xl bg-gradient-to-r from-indigo-50/80 via-white to-slate-50 border border-indigo-200 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
-          <span className="text-xs font-bold text-brand-accent uppercase tracking-wider">Business Poster Dashboard</span>
-          <h1 className="text-2xl font-extrabold text-white mt-1">{companyName}</h1>
-          <p className="text-xs text-slate-400 mt-1">
-            You have <strong className="text-white">{tasks.length} active task batches</strong> and{' '}
-            <strong className="text-amber-400">{pendingSubmissions.length} submission(s) awaiting review</strong>.
+          <span className="text-xs font-bold text-indigo-700 uppercase tracking-wider">Business Poster Dashboard</span>
+          <h1 className="text-2xl font-extrabold text-slate-900 mt-1">{companyName}</h1>
+          <p className="text-xs text-slate-600 mt-1">
+            You have <strong className="text-slate-900">{tasks.length} active task batches</strong> and{' '}
+            <strong className="text-amber-700">{pendingSubmissions.length} submission(s) awaiting review</strong>.
           </p>
         </div>
 
         <Link
           to="/business/tasks/create"
-          className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-brand-600 to-brand-accent text-white font-bold text-xs shadow-lg transition-all hover:scale-[1.02] flex items-center gap-2"
+          className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-brand-600 to-indigo-600 text-white font-bold text-xs shadow-md transition-all hover:opacity-95 flex items-center gap-2"
         >
           <PlusCircle className="w-4 h-4" /> Post New Task Batch
         </Link>
@@ -94,32 +94,32 @@ const Overview: React.FC = () => {
       {/* Actionable Submissions Review Prompt */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold text-white">Pending Submission Review Queue</h2>
-          <Link to="/business/submissions" className="text-xs text-brand-accent hover:underline">
+          <h2 className="text-lg font-bold text-slate-900">Pending Submission Review Queue</h2>
+          <Link to="/business/submissions" className="text-xs text-brand-600 font-semibold hover:underline">
             View All Submissions →
           </Link>
         </div>
 
         {pendingSubmissions.length === 0 ? (
-          <div className="p-8 rounded-2xl glass-panel border border-slate-800 flex items-center gap-3 text-slate-400 text-xs">
-            <div className="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center flex-shrink-0">
+          <div className="p-8 rounded-2xl bg-white border border-slate-200 shadow-sm flex items-center gap-3 text-slate-600 text-xs">
+            <div className="w-8 h-8 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center flex-shrink-0">
               <Check className="w-4 h-4" />
             </div>
             <span>No pending deliverables awaiting review. Worker submissions will appear here for grading and reward payout release.</span>
           </div>
         ) : (
-          <div className="p-5 rounded-2xl glass-panel border border-amber-500/30 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div className="p-5 rounded-2xl bg-amber-50/60 border border-amber-200 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-sm">
             <div className="space-y-1">
-              <span className="text-[10px] font-bold text-amber-400 uppercase tracking-wider">Awaiting Quality Rating</span>
-              <h3 className="text-base font-bold text-white">{pendingSubmissions[0].taskTitle}</h3>
-              <p className="text-xs text-slate-400">
+              <span className="text-[10px] font-bold text-amber-700 uppercase tracking-wider">Awaiting Quality Rating</span>
+              <h3 className="text-base font-bold text-slate-900">{pendingSubmissions[0].taskTitle}</h3>
+              <p className="text-xs text-slate-600">
                 Worker: {pendingSubmissions[0].workerName} • Submitted: {pendingSubmissions[0].linkUrl || pendingSubmissions[0].proofContent}
               </p>
             </div>
 
             <Link
               to="/business/submissions"
-              className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow-md transition-all"
+              className="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs shadow-sm transition-all"
             >
               Review & Grade Proof
             </Link>

@@ -66,18 +66,18 @@ const Overview: React.FC = () => {
   return (
     <div className="space-y-8">
       {/* Welcome Banner */}
-      <div className="p-6 rounded-3xl glass-panel border border-emerald-500/30 bg-gradient-to-r from-emerald-950/40 via-slate-900 to-dark-bg flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div className="p-6 rounded-3xl bg-gradient-to-r from-emerald-50/80 via-white to-slate-50 border border-emerald-200 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
-          <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider">Worker Dashboard</span>
-          <h1 className="text-2xl font-extrabold text-white mt-1">Welcome back, {user?.name || 'Worker'}!</h1>
-          <p className="text-xs text-slate-400 mt-1">
-            Total Earnings: <strong className="text-emerald-400">{formatCurrency(wallet.totalEarned || wallet.availableBalance)}</strong> • In Review: <strong className="text-amber-400">{formatCurrency(wallet.pendingBalance)}</strong>.
+          <span className="text-xs font-bold text-emerald-700 uppercase tracking-wider">Worker Dashboard</span>
+          <h1 className="text-2xl font-extrabold text-slate-900 mt-1">Welcome back, {user?.name || 'Worker'}!</h1>
+          <p className="text-xs text-slate-600 mt-1">
+            Total Earnings: <strong className="text-emerald-700">{formatCurrency(wallet.totalEarned || wallet.availableBalance)}</strong> • In Review: <strong className="text-amber-700">{formatCurrency(wallet.pendingBalance)}</strong>.
           </p>
         </div>
 
         <Link
           to="/worker/tasks"
-          className="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs shadow-lg transition-all flex items-center gap-2"
+          className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md transition-all flex items-center gap-2"
         >
           Browse Marketplace Tasks <ArrowRight className="w-4 h-4" />
         </Link>
@@ -116,21 +116,21 @@ const Overview: React.FC = () => {
       </div>
 
       {/* Task Lifecycle Diagram */}
-      <div className="p-6 rounded-2xl glass-panel border border-slate-800 space-y-4">
-        <h3 className="text-sm font-bold text-white uppercase tracking-wider">Task Execution Flow Statuses</h3>
+      <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-4">
+        <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">Task Execution Flow Statuses</h3>
         <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
           <StatusBadge status="AVAILABLE" />
-          <span className="text-slate-600">→</span>
+          <span className="text-slate-400 font-bold">→</span>
           <StatusBadge status="ASSIGNED" />
-          <span className="text-slate-600">→</span>
+          <span className="text-slate-400 font-bold">→</span>
           <StatusBadge status="IN_PROGRESS" />
-          <span className="text-slate-600">→</span>
+          <span className="text-slate-400 font-bold">→</span>
           <StatusBadge status="SUBMITTED" />
-          <span className="text-slate-600">→</span>
+          <span className="text-slate-400 font-bold">→</span>
           <StatusBadge status="UNDER_REVIEW" />
-          <span className="text-slate-600">→</span>
+          <span className="text-slate-400 font-bold">→</span>
           <StatusBadge status="APPROVED" />
-          <span className="text-slate-600">→</span>
+          <span className="text-slate-400 font-bold">→</span>
           <StatusBadge status="PAID" />
         </div>
       </div>
@@ -138,40 +138,40 @@ const Overview: React.FC = () => {
       {/* Available Tasks Quick List */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold text-white">Recommended Tasks for You</h2>
-          <Link to="/worker/tasks" className="text-xs text-brand-accent hover:underline">
+          <h2 className="text-lg font-bold text-slate-900">Recommended Tasks for You</h2>
+          <Link to="/worker/tasks" className="text-xs text-brand-600 font-semibold hover:underline">
             View All Tasks →
           </Link>
         </div>
 
         {recommendedTasks.length === 0 ? (
-          <div className="p-8 rounded-2xl glass-panel border border-slate-800 text-center space-y-2">
-            <p className="text-slate-400 text-sm">No new tasks available at this moment.</p>
-            <Link to="/worker/tasks" className="text-brand-accent text-xs hover:underline">
+          <div className="p-8 rounded-2xl bg-white border border-slate-200 shadow-sm text-center space-y-2">
+            <p className="text-slate-600 text-sm">No new tasks available at this moment.</p>
+            <Link to="/worker/tasks" className="text-brand-600 font-semibold text-xs hover:underline">
               Check all marketplace categories →
             </Link>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {recommendedTasks.map((task) => (
-              <div key={task.id} className="p-5 rounded-2xl glass-panel space-y-4 flex flex-col justify-between border hover:border-brand-500/40 transition-all">
+              <div key={task.id} className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-4 flex flex-col justify-between hover:border-brand-500/40 hover:shadow-md transition-all">
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-semibold text-brand-accent px-2 py-0.5 rounded bg-brand-500/10 border border-brand-500/20">
+                    <span className="text-[10px] font-semibold text-brand-700 px-2 py-0.5 rounded bg-brand-50 border border-brand-200">
                       {task.category}
                     </span>
-                    <span className="text-sm font-extrabold text-emerald-400">{formatCurrency(task.reward, task.currency)}</span>
+                    <span className="text-sm font-extrabold text-emerald-700">{formatCurrency(task.reward, task.currency)}</span>
                   </div>
-                  <h3 className="text-base font-bold text-white">{task.title}</h3>
-                  <p className="text-xs text-slate-400 line-clamp-2">{task.description}</p>
+                  <h3 className="text-base font-bold text-slate-900">{task.title}</h3>
+                  <p className="text-xs text-slate-600 line-clamp-2">{task.description}</p>
                 </div>
 
-                <div className="pt-3 border-t border-slate-800 flex items-center justify-between">
-                  <span className="text-xs text-slate-400">By {task.businessCompany || task.businessName || 'Business'}</span>
+                <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
+                  <span className="text-xs text-slate-500">By {task.businessCompany || task.businessName || 'Business'}</span>
                   <button
                     onClick={() => handleAcceptTask(task.id)}
                     disabled={lockingId === task.id}
-                    className="px-4 py-2 rounded-xl bg-gradient-to-r from-brand-600 to-indigo-600 text-white text-xs font-bold shadow-md hover:opacity-90 transition-all"
+                    className="px-4 py-2 rounded-xl bg-gradient-to-r from-brand-600 to-indigo-600 text-white text-xs font-bold shadow-sm hover:opacity-95 transition-all"
                   >
                     {lockingId === task.id ? 'Locking Seat...' : 'Accept Task'}
                   </button>

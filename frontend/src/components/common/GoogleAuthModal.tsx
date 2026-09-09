@@ -94,41 +94,41 @@ const GoogleAuthModal: React.FC<GoogleAuthModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="relative w-full max-w-md p-6 sm:p-8 bg-slate-900/95 border border-slate-700/80 rounded-3xl shadow-2xl space-y-5 text-slate-100 backdrop-blur-xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="relative w-full max-w-md p-6 sm:p-8 bg-white border border-slate-200 rounded-3xl shadow-2xl space-y-5 text-slate-800">
         {/* Close Button */}
         <button
           onClick={onClose}
           type="button"
-          className="absolute top-4 right-4 p-2 text-slate-400 hover:text-white rounded-full bg-slate-800/80 hover:bg-slate-700 transition-colors"
+          className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-700 rounded-full bg-slate-100 hover:bg-slate-200 transition-colors"
         >
           <X className="w-4 h-4" />
         </button>
 
         {/* Google Header */}
         <div className="text-center space-y-2 pt-2">
-          <div className="w-14 h-14 mx-auto rounded-2xl bg-white flex items-center justify-center shadow-xl shadow-white/10 p-2">
+          <div className="w-14 h-14 mx-auto rounded-2xl bg-white border border-slate-200 flex items-center justify-center shadow-md p-2">
             <GoogleIcon className="w-8 h-8" />
           </div>
-          <h2 className="text-xl font-bold text-white tracking-tight">Sign in with Google</h2>
-          <p className="text-xs text-slate-400">
-            Authenticate your Google profile to enter <span className="text-brand-accent font-semibold">TaskHub</span>
+          <h2 className="text-xl font-bold text-slate-900 tracking-tight">Sign in with Google</h2>
+          <p className="text-xs text-slate-600">
+            Authenticate your Google profile to enter <span className="text-brand-600 font-semibold">TaskHub</span>
           </p>
         </div>
 
         {/* Role Toggle */}
         <div>
-          <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
+          <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
             Select Account Role
           </label>
-          <div className="flex bg-slate-950 p-1 rounded-xl border border-slate-800">
+          <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200">
             <button
               type="button"
               onClick={() => setRole('WORKER')}
               className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition-all ${
                 role === 'WORKER'
                   ? 'bg-brand-600 text-white shadow-md'
-                  : 'text-slate-400 hover:text-slate-200'
+                  : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               <Wrench className="w-3.5 h-3.5" /> Worker
@@ -139,7 +139,7 @@ const GoogleAuthModal: React.FC<GoogleAuthModalProps> = ({
               className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition-all ${
                 role === 'BUSINESS'
                   ? 'bg-brand-600 text-white shadow-md'
-                  : 'text-slate-400 hover:text-slate-200'
+                  : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               <Briefcase className="w-3.5 h-3.5" /> Business
@@ -150,11 +150,11 @@ const GoogleAuthModal: React.FC<GoogleAuthModalProps> = ({
         {/* Dynamic Google Account Form */}
         <form onSubmit={handleSubmit} className="space-y-4 pt-1">
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-              Google Email Address <span className="text-rose-400">*</span>
+            <label className="block text-xs font-bold text-slate-900 mb-1.5">
+              Google Email Address <span className="text-rose-500">*</span>
             </label>
             <div className="relative">
-              <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 z-10 pointer-events-none" />
+              <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 z-10 pointer-events-none" />
               <input
                 type="email"
                 value={email}
@@ -165,29 +165,29 @@ const GoogleAuthModal: React.FC<GoogleAuthModalProps> = ({
                 placeholder="your.email@gmail.com"
                 required
                 autoFocus
-                className="w-full glass-input !pl-11 !pr-4 py-3 text-xs rounded-xl bg-slate-950/90 border-slate-800 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 text-white placeholder:text-slate-500 transition-all outline-none"
+                className="w-full glass-input !pl-11 !pr-4 py-3 text-xs rounded-xl bg-white border-slate-300 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 text-slate-900 placeholder:text-slate-400 transition-all outline-none"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+            <label className="block text-xs font-bold text-slate-900 mb-1.5">
               Google Profile Name <span className="text-slate-500 text-[10px] font-normal">(Optional)</span>
             </label>
             <div className="relative">
-              <UserIcon className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 z-10 pointer-events-none" />
+              <UserIcon className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 z-10 pointer-events-none" />
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Your Full Name"
-                className="w-full glass-input !pl-11 !pr-4 py-3 text-xs rounded-xl bg-slate-950/90 border-slate-800 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 text-white placeholder:text-slate-500 transition-all outline-none"
+                className="w-full glass-input !pl-11 !pr-4 py-3 text-xs rounded-xl bg-white border-slate-300 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 text-slate-900 placeholder:text-slate-400 transition-all outline-none"
               />
             </div>
           </div>
 
           {error && (
-            <p className="text-xs text-rose-400 bg-rose-500/10 border border-rose-500/20 p-2.5 rounded-xl animate-in fade-in-50">
+            <p className="text-xs text-rose-600 bg-rose-50 border border-rose-200 p-2.5 rounded-xl font-medium animate-in fade-in-50">
               {error}
             </p>
           )}
@@ -196,34 +196,34 @@ const GoogleAuthModal: React.FC<GoogleAuthModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition-all"
+              className="px-4 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-all"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting || !email.trim()}
-              className="flex-1 py-3 rounded-xl bg-white hover:bg-slate-100 disabled:opacity-50 text-slate-950 text-xs font-bold shadow-lg transition-all flex items-center justify-center gap-2"
+              className="flex-1 py-3 rounded-xl bg-slate-900 hover:bg-slate-800 disabled:opacity-50 text-white text-xs font-bold shadow-md transition-all flex items-center justify-center gap-2"
             >
               {isSubmitting ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin text-slate-950" />
+                  <Loader2 className="w-4 h-4 animate-spin text-white" />
                   <span>Connecting Google Account...</span>
                 </>
               ) : (
                 <>
                   <GoogleIcon className="w-4 h-4" />
                   <span>Continue with Google</span>
-                  <ArrowRight className="w-4 h-4 text-slate-600" />
+                  <ArrowRight className="w-4 h-4 text-slate-300" />
                 </>
               )}
             </button>
           </div>
         </form>
 
-        <div className="pt-2 border-t border-slate-800/80 text-center">
+        <div className="pt-2 border-t border-slate-200 text-center">
           <p className="text-[10px] text-slate-500 flex items-center justify-center gap-1">
-            <Shield className="w-3.5 h-3.5 text-emerald-400" /> Google OAuth 2.0 & End-to-End Direct Payout Security
+            <Shield className="w-3.5 h-3.5 text-emerald-600" /> Google OAuth 2.0 & End-to-End Direct Payout Security
           </p>
         </div>
       </div>
