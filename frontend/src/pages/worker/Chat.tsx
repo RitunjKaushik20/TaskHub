@@ -223,12 +223,14 @@ const WorkerChat: React.FC = () => {
                 </div>
               ) : (
                 messages.map((msg) => {
-                  const isSelf = msg.senderRole === (user?.role || 'WORKER');
+                  const isSelf = (user?.id && msg.senderId)
+                    ? msg.senderId === user.id
+                    : msg.senderRole === (user?.role || 'WORKER');
                   const hasImage = isImageFile(msg.fileName || msg.fileUrl);
                   return (
                     <div key={msg.id} className={`flex flex-col ${isSelf ? 'items-end' : 'items-start'} space-y-1`}>
                       <div className="flex items-center gap-1.5 text-[10px] text-slate-500">
-                        <span className="text-slate-700 font-semibold">{msg.senderName}</span>
+                        <span className="text-slate-700 font-semibold">{isSelf ? 'You' : msg.senderName}</span>
                         <span>•</span>
                         <span>{new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                       </div>
@@ -236,11 +238,11 @@ const WorkerChat: React.FC = () => {
                       <div
                         className={`p-3.5 rounded-2xl max-w-md text-xs leading-relaxed shadow-sm ${
                           isSelf
-                            ? 'bg-brand-600 text-white font-medium rounded-tr-none'
+                            ? 'bg-brand-50 border border-brand-200 text-slate-900 font-medium rounded-tr-none'
                             : 'bg-slate-100 border border-slate-200 text-slate-900 font-medium rounded-tl-none'
                         }`}
                       >
-                        {msg.message && <p className={isSelf ? 'text-white' : 'text-slate-900'}>{msg.message}</p>}
+                        {msg.message && <p className="text-slate-900 font-medium break-words">{msg.message}</p>}
 
                         {/* Image Preview */}
                         {msg.fileUrl && hasImage && (
@@ -249,7 +251,7 @@ const WorkerChat: React.FC = () => {
                               href={msg.fileUrl}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="block group/img overflow-hidden rounded-xl border border-slate-200/50"
+                              className="block group/img overflow-hidden rounded-xl border border-slate-200/80 bg-white"
                             >
                               <img
                                 src={msg.fileUrl}
@@ -257,7 +259,7 @@ const WorkerChat: React.FC = () => {
                                 className="max-h-56 w-full object-cover rounded-xl group-hover/img:scale-105 transition-transform"
                               />
                             </a>
-                            <span className={`text-[10px] mt-1 block truncate ${isSelf ? 'text-white/80' : 'text-slate-600'}`}>
+                            <span className="text-[10px] text-slate-600 mt-1 block truncate">
                               📎 {msg.fileName || 'Attached image'}
                             </span>
                           </div>
@@ -270,22 +272,16 @@ const WorkerChat: React.FC = () => {
                             target="_blank"
                             rel="noopener noreferrer"
                             download={msg.fileName}
-                            className={`mt-2 p-2.5 rounded-xl border flex items-center gap-2.5 transition-all text-xs group/file ${
-                              isSelf
-                                ? 'bg-white/15 border-white/25 hover:bg-white/20 text-white'
-                                : 'bg-white border-slate-200 hover:border-slate-300 text-slate-900 shadow-sm'
-                            }`}
+                            className="mt-2 p-2.5 rounded-xl border border-slate-200 bg-white hover:border-slate-300 flex items-center gap-2.5 transition-all text-xs group/file text-slate-900 shadow-sm"
                           >
-                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
-                              isSelf ? 'bg-white/20 text-white' : 'bg-slate-100 border border-slate-200 text-slate-700'
-                            }`}>
+                            <div className="w-8 h-8 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-700 shrink-0">
                               <FileText className="w-4 h-4" />
                             </div>
                             <div className="flex-1 min-w-0 text-left">
-                              <p className={`font-semibold truncate ${isSelf ? 'text-white' : 'text-slate-900'}`}>{msg.fileName || 'Attached File'}</p>
-                              <p className={`text-[10px] ${isSelf ? 'text-white/75' : 'text-slate-500'}`}>Click to view / download</p>
+                              <p className="font-semibold text-slate-900 truncate">{msg.fileName || 'Attached File'}</p>
+                              <p className="text-[10px] text-slate-500">Click to view / download</p>
                             </div>
-                            <Download className={`w-4 h-4 shrink-0 ${isSelf ? 'text-white' : 'text-slate-500 group-hover/file:text-slate-700'}`} />
+                            <Download className="w-4 h-4 text-slate-500 group-hover/file:text-slate-700 shrink-0" />
                           </a>
                         )}
                       </div>
