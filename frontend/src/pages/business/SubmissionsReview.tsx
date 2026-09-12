@@ -83,18 +83,18 @@ const SubmissionsReview: React.FC = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-extrabold text-white">Worker Submission Review & Rating</h1>
-        <p className="text-xs text-slate-400">Inspect deliverable proofs, assign star quality scores, and approve reward payout release.</p>
+        <h1 className="text-2xl font-extrabold text-slate-900">Worker Submission Review & Rating</h1>
+        <p className="text-xs text-slate-600">Inspect deliverable proofs, assign star quality scores, and approve reward payout release.</p>
       </div>
 
       {submissions.length === 0 ? (
-        <div className="p-12 rounded-3xl glass-panel border border-slate-800 text-center space-y-4 max-w-xl mx-auto">
-          <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto">
+        <div className="p-12 rounded-3xl bg-white border border-slate-200 shadow-sm text-center space-y-4 max-w-xl mx-auto">
+          <div className="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center mx-auto">
             <Check className="w-6 h-6" />
           </div>
           <div>
-            <h3 className="text-base font-bold text-white">No Submissions Pending Review</h3>
-            <p className="text-xs text-slate-400 mt-1">
+            <h3 className="text-base font-bold text-slate-900">No Submissions Pending Review</h3>
+            <p className="text-xs text-slate-600 mt-1">
               When workers complete assigned tasks and upload proofs, their deliverables will appear here for grading and reward payout.
             </p>
           </div>
@@ -102,74 +102,74 @@ const SubmissionsReview: React.FC = () => {
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-1 space-y-3">
-            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Submissions Queue</h3>
+            <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider">Submissions Queue</h3>
             {submissions.map((sub) => (
               <div
                 key={sub.id}
                 onClick={() => setSelectedSubId(sub.id)}
-                className={`p-4 rounded-2xl border cursor-pointer transition-all ${
+                className={`p-4 rounded-2xl border cursor-pointer transition-all shadow-sm ${
                   selectedSubId === sub.id
-                    ? 'bg-brand-600/20 border-brand-500 text-white shadow-lg'
-                    : 'bg-slate-900/60 border-slate-800 text-slate-300 hover:border-slate-700'
+                    ? 'bg-brand-50 border-brand-500 text-slate-900 ring-1 ring-brand-500/30'
+                    : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300'
                 }`}
               >
                 <div className="flex items-center justify-between mb-1">
                   <StatusBadge type="submission" status={sub.status} size="sm" />
-                  <span className="text-xs font-bold text-emerald-400">{formatCurrency(sub.rewardAmount)}</span>
+                  <span className="text-xs font-extrabold text-emerald-700">{formatCurrency(sub.rewardAmount)}</span>
                 </div>
-                <h4 className="text-xs font-bold truncate">{sub.taskTitle}</h4>
-                <p className="text-[10px] text-slate-400 mt-1">Worker: {sub.workerName}</p>
+                <h4 className="text-xs font-bold truncate text-slate-900">{sub.taskTitle}</h4>
+                <p className="text-[10px] text-slate-500 mt-1">Worker: {sub.workerName}</p>
               </div>
             ))}
           </div>
 
-          <div className="lg:col-span-2 p-6 rounded-3xl glass-panel border border-slate-800 space-y-6">
+          <div className="lg:col-span-2 p-6 sm:p-8 rounded-3xl bg-white border border-slate-200 shadow-sm space-y-6">
             {selectedSub ? (
               <>
-                <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+                <div className="flex items-center justify-between border-b border-slate-200 pb-4">
                   <div>
-                    <span className="text-[10px] text-brand-accent font-semibold">Sub ID: {selectedSub.id}</span>
-                    <h2 className="text-lg font-bold text-white mt-0.5">{selectedSub.taskTitle}</h2>
-                    <p className="text-xs text-slate-400">Worker: {selectedSub.workerName} ({selectedSub.workerId})</p>
+                    <span className="text-[10px] text-brand-600 font-bold uppercase tracking-wider">Sub ID: {selectedSub.id}</span>
+                    <h2 className="text-lg font-bold text-slate-900 mt-0.5">{selectedSub.taskTitle}</h2>
+                    <p className="text-xs text-slate-600">Worker: <span className="font-semibold text-slate-800">{selectedSub.workerName}</span> ({selectedSub.workerId})</p>
                   </div>
                   <StatusBadge type="submission" status={selectedSub.status} />
                 </div>
 
                 <div className="space-y-3">
-                  <h3 className="text-xs font-bold text-slate-300 uppercase tracking-wider">Submitted Deliverable Proof</h3>
-                  <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-3 text-xs">
-                    <p className="text-slate-200">{selectedSub.proofContent}</p>
+                  <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider">Submitted Deliverable Proof</h3>
+                  <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-3 text-xs">
+                    <p className="text-slate-800 leading-relaxed whitespace-pre-wrap">{selectedSub.proofContent}</p>
                     
                     {selectedSub.fileUrl && (
-                      <div>
+                      <div className="pt-1">
                         <a
                           href={selectedSub.fileUrl.startsWith('http') ? selectedSub.fileUrl : `http://localhost:8000${selectedSub.fileUrl}`}
                           target="_blank"
                           rel="noreferrer"
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/20 font-semibold transition-all"
+                          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 font-bold text-xs transition-all shadow-sm"
                         >
-                          <FileText className="w-4 h-4" /> View Uploaded Proof File ({selectedSub.fileUrl})
+                          <FileText className="w-4 h-4 text-emerald-600" /> View Uploaded Proof File ({selectedSub.fileUrl})
                         </a>
                       </div>
                     )}
 
                     {selectedSub.linkUrl && (
-                      <div>
+                      <div className="pt-1">
                         <a
                           href={selectedSub.linkUrl}
                           target="_blank"
                           rel="noreferrer"
-                          className="inline-flex items-center gap-1 text-brand-accent hover:underline font-semibold"
+                          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-brand-50 text-brand-700 border border-brand-200 hover:bg-brand-100 font-bold text-xs transition-all shadow-sm"
                         >
-                          <ExternalLink className="w-3.5 h-3.5" /> View Deliverable Link ({selectedSub.linkUrl})
+                          <ExternalLink className="w-3.5 h-3.5 text-brand-600" /> View Deliverable Link ({selectedSub.linkUrl})
                         </a>
                       </div>
                     )}
                   </div>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-3">
-                  <label className="block text-xs font-bold text-slate-200">
+                <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+                  <label className="block text-xs font-bold text-slate-800">
                     Assign Quality Score (1 to 5 Stars)
                   </label>
                   <div className="flex items-center gap-2">
@@ -178,19 +178,21 @@ const SubmissionsReview: React.FC = () => {
                         key={star}
                         type="button"
                         onClick={() => setQualityScore(star)}
-                        className={`p-2 rounded-xl transition-all ${
-                          qualityScore >= star ? 'text-amber-400 bg-amber-500/10' : 'text-slate-600 bg-slate-950'
+                        className={`p-2 rounded-xl border transition-all ${
+                          qualityScore >= star
+                            ? 'text-amber-500 bg-amber-50 border-amber-200 shadow-sm'
+                            : 'text-slate-400 bg-white border-slate-200 hover:text-amber-400 hover:border-amber-200'
                         }`}
                       >
                         <Star className="w-5 h-5 fill-current" />
                       </button>
                     ))}
-                    <span className="text-xs font-bold text-slate-300 ml-2">{qualityScore} / 5 Stars</span>
+                    <span className="text-xs font-bold text-slate-700 ml-2">{qualityScore} / 5 Stars</span>
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Feedback / Rejection Reason</label>
+                  <label className="block text-xs font-bold text-slate-800 mb-1.5">Feedback / Rejection Reason</label>
                   <input
                     type="text"
                     value={feedback}
@@ -199,20 +201,20 @@ const SubmissionsReview: React.FC = () => {
                       setRejectionReason(e.target.value);
                     }}
                     placeholder="Feedback notes for the worker..."
-                    className="w-full glass-input text-xs"
+                    className="w-full glass-input text-xs text-slate-900 placeholder:text-slate-400 bg-white border border-slate-300"
                   />
                 </div>
 
-                <div className="flex items-center justify-end gap-3 pt-2 border-t border-slate-800">
+                <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-200">
                   <button
                     onClick={handleReject}
-                    className="px-5 py-2.5 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/30 font-bold text-xs flex items-center gap-1.5 transition-all"
+                    className="px-5 py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold text-xs flex items-center gap-1.5 transition-all shadow-sm"
                   >
                     <XCircle className="w-4 h-4" /> Reject Deliverable
                   </button>
                   <button
                     onClick={handleApprove}
-                    className="px-6 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs shadow-lg flex items-center gap-1.5 transition-all"
+                    className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md flex items-center gap-1.5 transition-all"
                   >
                     <CheckCircle2 className="w-4 h-4" /> Approve & Pay {formatCurrency(selectedSub.rewardAmount)}
                   </button>
