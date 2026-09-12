@@ -76,41 +76,41 @@ const CreateTask: React.FC = () => {
   return (
     <div className="space-y-8 max-w-4xl">
       <div>
-        <h1 className="text-2xl font-extrabold text-white">Post New Task Batch</h1>
-        <p className="text-xs text-slate-400">
+        <h1 className="text-2xl font-extrabold text-slate-900">Post New Task Batch</h1>
+        <p className="text-xs text-slate-600">
           Define worker task specs, direct reward per worker, seat limits, and required proof formats.
         </p>
       </div>
 
-      <div className="p-8 rounded-3xl glass-panel border border-slate-800 space-y-6">
+      <div className="p-8 rounded-3xl bg-white border border-slate-200 shadow-sm space-y-6">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1">Task Title</label>
+            <label className="block text-xs font-bold text-slate-800 mb-1.5">Task Title</label>
             <input
               type="text"
               {...register('title')}
               placeholder="e.g. UX Feedback & Usability Review for Mobile App"
-              className="w-full glass-input text-xs"
+              className="w-full glass-input text-xs text-slate-900 placeholder:text-slate-400 bg-white border border-slate-300"
             />
-            {errors.title && <p className="text-[10px] text-rose-400 mt-1">{errors.title.message}</p>}
+            {errors.title && <p className="text-[10px] text-rose-500 mt-1">{errors.title.message}</p>}
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">Category</label>
-              <select {...register('category')} className="w-full glass-input text-xs">
+              <label className="block text-xs font-bold text-slate-800 mb-1.5">Category</label>
+              <select {...register('category')} className="w-full glass-input text-xs text-slate-900 bg-white border border-slate-300">
                 <option value="AI & Data Annotation">AI & Data Annotation</option>
                 <option value="UX Research">UX Research</option>
                 <option value="Translation & Localization">Translation & Localization</option>
                 <option value="Software Engineering">Software Engineering</option>
                 <option value="Lead Generation">Lead Generation</option>
               </select>
-              {errors.category && <p className="text-[10px] text-rose-400 mt-1">{errors.category.message}</p>}
+              {errors.category && <p className="text-[10px] text-rose-500 mt-1">{errors.category.message}</p>}
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">Difficulty Level</label>
-              <select {...register('difficulty')} className="w-full glass-input text-xs">
+              <label className="block text-xs font-bold text-slate-800 mb-1.5">Difficulty Level</label>
+              <select {...register('difficulty')} className="w-full glass-input text-xs text-slate-900 bg-white border border-slate-300">
                 <option value="BEGINNER">Beginner</option>
                 <option value="INTERMEDIATE">Intermediate</option>
                 <option value="ADVANCED">Advanced</option>
@@ -120,17 +120,17 @@ const CreateTask: React.FC = () => {
           </div>
 
           {/* Currency selection & reward fields */}
-          <div className="p-4 rounded-2xl bg-slate-950/60 border border-slate-800 space-y-4">
+          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-2">Reward Currency</label>
+              <label className="block text-slate-800 font-bold text-xs mb-1.5">Reward Currency</label>
               <div className="grid grid-cols-2 gap-3 max-w-xs">
                 <button
                   type="button"
                   onClick={() => setValue('currency', 'USD')}
                   className={`py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 border ${
                     watchCurrency === 'USD'
-                      ? 'bg-brand-600 border-brand-500 text-white shadow-md'
-                      : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-white'
+                      ? 'bg-brand-600 border-brand-600 text-white shadow-md'
+                      : 'bg-white border border-slate-300 text-slate-700 font-semibold hover:bg-slate-100'
                   }`}
                 >
                   <DollarSign className="w-3.5 h-3.5" /> US Dollars ($)
@@ -140,8 +140,8 @@ const CreateTask: React.FC = () => {
                   onClick={() => setValue('currency', 'INR')}
                   className={`py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 border ${
                     watchCurrency === 'INR'
-                      ? 'bg-emerald-600 border-emerald-500 text-white shadow-md'
-                      : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-white'
+                      ? 'bg-emerald-600 border-emerald-600 text-white shadow-md'
+                      : 'bg-white border border-slate-300 text-slate-700 font-semibold hover:bg-slate-100'
                   }`}
                 >
                   <span className="font-extrabold text-xs">₹</span> Indian Rupees (₹)
@@ -151,12 +151,12 @@ const CreateTask: React.FC = () => {
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                <label className="block text-slate-800 font-bold text-xs mb-1.5">
                   Reward per Worker ({watchCurrency === 'INR' ? '₹' : '$'})
                 </label>
                 <div className="relative">
                   {watchCurrency === 'INR' ? (
-                    <span className="text-xs font-bold text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none z-10">₹</span>
+                    <span className="text-xs font-bold text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none z-10">₹</span>
                   ) : (
                     <DollarSign className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none z-10" />
                   )}
@@ -165,95 +165,95 @@ const CreateTask: React.FC = () => {
                     step={watchCurrency === 'INR' ? '1' : '0.50'}
                     {...register('reward', { valueAsNumber: true })}
                     placeholder={watchCurrency === 'INR' ? '500' : '25.00'}
-                    className="w-full glass-input !pl-11 !pr-4 text-xs text-emerald-400 font-bold"
+                    className="w-full glass-input !pl-11 !pr-4 text-xs text-slate-900 font-bold bg-white border-slate-300 placeholder:text-slate-400"
                   />
                 </div>
-                {errors.reward && <p className="text-[10px] text-rose-400 mt-1">{errors.reward.message}</p>}
+                {errors.reward && <p className="text-[10px] text-rose-500 mt-1">{errors.reward.message}</p>}
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">Worker Seat Limit</label>
+                <label className="block text-slate-800 font-bold text-xs mb-1.5">Worker Seat Limit</label>
                 <div className="relative">
                   <Users className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none z-10" />
                   <input
                     type="number"
                     {...register('workerLimit', { valueAsNumber: true })}
                     placeholder="10"
-                    className="w-full glass-input !pl-11 !pr-4 text-xs"
+                    className="w-full glass-input !pl-11 !pr-4 text-xs text-slate-900 bg-white border-slate-300 placeholder:text-slate-400"
                   />
                 </div>
-                {errors.workerLimit && <p className="text-[10px] text-rose-400 mt-1">{errors.workerLimit.message}</p>}
+                {errors.workerLimit && <p className="text-[10px] text-rose-500 mt-1">{errors.workerLimit.message}</p>}
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">Deadline Date</label>
+                <label className="block text-slate-800 font-bold text-xs mb-1.5">Deadline Date</label>
                 <input
                   type="date"
                   {...register('deadline')}
-                  className="w-full glass-input text-xs"
+                  className="w-full glass-input text-xs text-slate-900 bg-white border-slate-300"
                 />
-                {errors.deadline && <p className="text-[10px] text-rose-400 mt-1">{errors.deadline.message}</p>}
+                {errors.deadline && <p className="text-[10px] text-rose-500 mt-1">{errors.deadline.message}</p>}
               </div>
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1">Overview Description</label>
+            <label className="block text-xs font-bold text-slate-800 mb-1.5">Overview Description</label>
             <textarea
               rows={2}
               {...register('description')}
               placeholder="High level overview of what workers will execute..."
-              className="w-full glass-input text-xs"
+              className="w-full glass-input text-xs text-slate-900 placeholder:text-slate-400 bg-white border border-slate-300"
             />
-            {errors.description && <p className="text-[10px] text-rose-400 mt-1">{errors.description.message}</p>}
+            {errors.description && <p className="text-[10px] text-rose-500 mt-1">{errors.description.message}</p>}
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1">Detailed Step-by-Step Instructions</label>
+            <label className="block text-xs font-bold text-slate-800 mb-1.5">Detailed Step-by-Step Instructions</label>
             <textarea
               rows={4}
               {...register('instructions')}
               placeholder="1. Access portal link...&#10;2. Complete test case...&#10;3. Export deliverable..."
-              className="w-full glass-input text-xs"
+              className="w-full glass-input text-xs text-slate-900 placeholder:text-slate-400 bg-white border border-slate-300"
             />
-            {errors.instructions && <p className="text-[10px] text-rose-400 mt-1">{errors.instructions.message}</p>}
+            {errors.instructions && <p className="text-[10px] text-rose-500 mt-1">{errors.instructions.message}</p>}
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">Required Skills (Comma-separated)</label>
+              <label className="block text-xs font-bold text-slate-800 mb-1.5">Required Skills (Comma-separated)</label>
               <input
                 type="text"
                 {...register('requiredSkills')}
                 placeholder="Python, Loom, React"
-                className="w-full glass-input text-xs"
+                className="w-full glass-input text-xs text-slate-900 placeholder:text-slate-400 bg-white border border-slate-300"
               />
-              {errors.requiredSkills && <p className="text-[10px] text-rose-400 mt-1">{errors.requiredSkills.message}</p>}
+              {errors.requiredSkills && <p className="text-[10px] text-rose-500 mt-1">{errors.requiredSkills.message}</p>}
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">Proof Requirements Format</label>
+              <label className="block text-xs font-bold text-slate-800 mb-1.5">Proof Requirements Format</label>
               <input
                 type="text"
                 {...register('proofRequirements')}
                 placeholder="Loom URL link or Markdown text summary"
-                className="w-full glass-input text-xs"
+                className="w-full glass-input text-xs text-slate-900 placeholder:text-slate-400 bg-white border border-slate-300"
               />
-              {errors.proofRequirements && <p className="text-[10px] text-rose-400 mt-1">{errors.proofRequirements.message}</p>}
+              {errors.proofRequirements && <p className="text-[10px] text-rose-500 mt-1">{errors.proofRequirements.message}</p>}
             </div>
           </div>
 
-          <div className="p-4 rounded-xl bg-slate-950 border border-brand-500/30 flex items-center justify-between text-xs">
-            <span className="text-slate-300 flex items-center gap-2">
-              <ShieldCheck className="w-4 h-4 text-emerald-400" /> Total Allocated Reward:
+          <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between text-xs">
+            <span className="text-slate-700 font-semibold flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4 text-emerald-600" /> Total Allocated Reward:
             </span>
-            <span className="text-base font-extrabold text-emerald-400">{formatCurrency(totalAllocatedReward, watchCurrency)}</span>
+            <span className="text-base font-extrabold text-emerald-700">{formatCurrency(totalAllocatedReward, watchCurrency)}</span>
           </div>
 
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full py-3.5 rounded-xl bg-gradient-to-r from-brand-600 via-indigo-600 to-brand-accent text-white font-bold text-xs shadow-xl transition-all flex items-center justify-center gap-2 hover:opacity-95"
+            className="w-full py-3.5 rounded-xl bg-gradient-to-r from-brand-600 via-indigo-600 to-brand-accent text-white font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2 hover:opacity-95"
           >
             {isSubmitting ? 'Posting Task Batch...' : 'Create & Publish Task Batch'} <PlusCircle className="w-4 h-4" />
           </button>
