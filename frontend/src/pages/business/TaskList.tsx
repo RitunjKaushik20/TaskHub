@@ -18,7 +18,7 @@ const TaskList: React.FC = () => {
     const fetchTasks = async () => {
       setIsLoading(true);
       try {
-        const response = await tasksApi.getTasks();
+        const response = await tasksApi.getMyTasks();
         if (response.success && response.data) {
           setTasks(response.data);
         } else {

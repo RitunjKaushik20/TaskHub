@@ -20,6 +20,12 @@ export const tasksApi = {
     return apiRequest(() => api.get('/tasks', { params: filters }));
   },
 
+  // Part A (data isolation): business dashboard data — returns ONLY the calling
+  // business's own task batches. Never use getTasks() for business pages.
+  getMyTasks: async (filters?: TaskFilters): Promise<ApiResponse<Task[]>> => {
+    return apiRequest(() => api.get('/tasks/mine', { params: filters }));
+  },
+
   getTaskById: async (id: string): Promise<ApiResponse<Task>> => {
     return apiRequest(
       () => api.get(`/tasks/${id}`)

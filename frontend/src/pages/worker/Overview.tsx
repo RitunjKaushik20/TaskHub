@@ -8,6 +8,8 @@ import { useToast } from '../../context/ToastContext';
 import { useAuth } from '../../context/AuthContext';
 import { walletApi } from '../../api/wallet';
 import { tasksApi } from '../../api/tasks';
+import Card from '../../components/ui/Card';
+import Button from '../../components/ui/Button';
 import type { Task, WalletSummary } from '../../types';
 
 const Overview: React.FC = () => {
@@ -145,16 +147,16 @@ const Overview: React.FC = () => {
         </div>
 
         {recommendedTasks.length === 0 ? (
-          <div className="p-8 rounded-2xl bg-white border border-slate-200 shadow-sm text-center space-y-2">
+          <Card className="p-8 text-center space-y-2">
             <p className="text-slate-600 text-sm">No new tasks available at this moment.</p>
             <Link to="/worker/tasks" className="text-brand-600 font-semibold text-xs hover:underline">
               Check all marketplace categories →
             </Link>
-          </div>
+          </Card>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {recommendedTasks.map((task) => (
-              <div key={task.id} className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-4 flex flex-col justify-between hover:border-brand-500/40 hover:shadow-md transition-all">
+              <Card key={task.id} className="p-5 space-y-4 flex flex-col justify-between hover:border-brand-500/40">
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] font-semibold text-brand-700 px-2 py-0.5 rounded bg-brand-50 border border-brand-200">
@@ -168,15 +170,15 @@ const Overview: React.FC = () => {
 
                 <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
                   <span className="text-xs text-slate-500">By {task.businessCompany || task.businessName || 'Business'}</span>
-                  <button
+                  <Button
+                    variant="primary"
                     onClick={() => handleAcceptTask(task.id)}
                     disabled={lockingId === task.id}
-                    className="px-4 py-2 rounded-xl bg-gradient-to-r from-brand-600 to-indigo-600 text-white text-xs font-bold shadow-sm hover:opacity-95 transition-all"
                   >
                     {lockingId === task.id ? 'Locking Seat...' : 'Accept Task'}
-                  </button>
+                  </Button>
                 </div>
-              </div>
+              </Card>
             ))}
           </div>
         )}

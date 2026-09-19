@@ -1,5 +1,16 @@
 import { api, apiRequest } from '../lib/api';
-import type { UserManagementItem, WithdrawalRequest, AuditLog, ApiResponse, Task, Submission } from '../types';
+import type {
+  UserManagementItem,
+  WithdrawalRequest,
+  AuditLog,
+  ApiResponse,
+  Task,
+  Submission,
+  BusinessApprovalItem,
+  ApprovalStatus,
+  AdminApprovalLogEntry,
+  AdminDashboardStats,
+} from '../types';
 
 export const adminApi = {
   getUsers: async (): Promise<ApiResponse<UserManagementItem[]>> => {
@@ -51,5 +62,27 @@ export const adminApi = {
 
   getAdminAnalytics: async (): Promise<ApiResponse<any>> => {
     return apiRequest(() => api.get('/admin/analytics'));
+  },
+
+  getDashboardStats: async (): Promise<ApiResponse<AdminDashboardStats>> => {
+    return apiRequest(() => api.get('/admin/dashboard-stats'));
+  },
+
+  getBusinessApprovals: async (filter?: string): Promise<ApiResponse<BusinessApprovalItem[]>> => {
+    return apiRequest(() => api.get('/admin/businesses', { params: filter ? { filter } : {} }));
+  },
+
+  updateBusinessApproval: async (
+    businessId: string,
+    action: 'APPROVE' | 'REJECT' | 'SUSPEND',
+    reason?: string
+  ): Promise<ApiResponse<{ id: string; approvalStatus: ApprovalStatus; notificationSent?: boolean }>> => {
+    return apiRequest(() =>
+      api.post(`/admin/businesses/${businessId}/approval`, { action, reason: reason || undefined })
+    );
+  },
+
+  getBusinessApprovalHistory: async (businessId: string): Promise<ApiResponse<AdminApprovalLogEntry[]>> => {
+    return apiRequest(() => api.get(`/admin/businesses/${businessId}/approval-history`));
   },
 };

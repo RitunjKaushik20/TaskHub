@@ -20,6 +20,8 @@ import {
 import { tasksApi } from '../../api/tasks';
 import type { Task } from '../../types';
 import TaskCard from '../../components/common/TaskCard';
+import Card from '../../components/ui/Card';
+import Badge from '../../components/ui/Badge';
 
 const POPULAR_PILLS = [
   'AI Annotation',
@@ -122,10 +124,10 @@ const Home: React.FC = () => {
       <section className="relative pt-4 pb-12 flex flex-col lg:flex-row items-center justify-between gap-12">
         <div className="flex-1 space-y-6 max-w-2xl text-center lg:text-left">
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold shadow-xs">
+          <Badge color="emerald" className="px-3.5 py-1 text-xs shadow-xs">
             <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
             The Premier Human Intelligence & Micro-Task Marketplace
-          </div>
+          </Badge>
 
           {/* Fiverr Headline */}
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-slate-900 leading-tight font-sans">
@@ -387,7 +389,7 @@ const Home: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="p-6 rounded-2xl bg-white border border-slate-200 space-y-3 shadow-xs">
+          <Card className="p-6 space-y-3">
             <div className="w-10 h-10 rounded-xl bg-emerald-100 border border-emerald-200 flex items-center justify-center text-emerald-700 font-extrabold text-sm">
               01
             </div>
@@ -395,9 +397,9 @@ const Home: React.FC = () => {
             <p className="text-xs text-slate-600 leading-relaxed">
               Define your task specs, attach instructions, set worker seat limits, and specify rewards in ₹ or $.
             </p>
-          </div>
+          </Card>
 
-          <div className="p-6 rounded-2xl bg-white border border-slate-200 space-y-3 shadow-xs">
+          <Card className="p-6 space-y-3">
             <div className="w-10 h-10 rounded-xl bg-teal-100 border border-teal-200 flex items-center justify-center text-teal-700 font-extrabold text-sm">
               02
             </div>
@@ -405,9 +407,9 @@ const Home: React.FC = () => {
             <p className="text-xs text-slate-600 leading-relaxed">
               Workers claim open seats, collaborate via real-time chat with attachments, and submit deliverable proofs.
             </p>
-          </div>
+          </Card>
 
-          <div className="p-6 rounded-2xl bg-white border border-slate-200 space-y-3 shadow-xs">
+          <Card className="p-6 space-y-3">
             <div className="w-10 h-10 rounded-xl bg-indigo-100 border border-indigo-200 flex items-center justify-center text-indigo-700 font-extrabold text-sm">
               03
             </div>
@@ -415,7 +417,7 @@ const Home: React.FC = () => {
             <p className="text-xs text-slate-600 leading-relaxed">
               Business approves deliverables with a 1-5 quality rating. Rewards transfer immediately to worker earnings with zero escrow deduction.
             </p>
-          </div>
+          </Card>
         </div>
       </section>
 

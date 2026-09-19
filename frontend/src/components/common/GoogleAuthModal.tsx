@@ -221,9 +221,12 @@ const GoogleAuthModal: React.FC<GoogleAuthModalProps> = ({
           </div>
         </form>
 
-        <div className="pt-2 border-t border-slate-200 text-center">
+        <div className="pt-2 border-t border-slate-200 space-y-1.5 text-center">
           <p className="text-[10px] text-slate-500 flex items-center justify-center gap-1">
             <Shield className="w-3.5 h-3.5 text-emerald-600" /> Google OAuth 2.0 & End-to-End Direct Payout Security
+          </p>
+          <p className="text-[10px] text-slate-400 flex items-center justify-center gap-1">
+            <Mail className="w-3 h-3" /> Only verified Google accounts with non-temporary email addresses can sign in.
           </p>
         </div>
       </div>

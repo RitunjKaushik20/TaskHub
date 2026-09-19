@@ -47,15 +47,19 @@ const Login: React.FC = () => {
   });
 
   const onSubmit = async (data: LoginFormValues) => {
-    const success = await login(data);
-    if (success) {
+    const result = await login(data);
+    if (result.ok) {
       if (rememberMe) {
         localStorage.setItem('rememberedEmail', data.email);
       }
       toast.success('Welcome back!', 'Successfully signed into TaskHub.');
       navigate(from, { replace: true });
+    } else if (result.needsOtp) {
+      // Part B: the account registered but never verified its email.
+      toast.error('Email not verified', 'Enter the code we emailed you to activate your account.');
+      navigate(`/verify-email?email=${encodeURIComponent(result.email || data.email)}`, { replace: false });
     } else {
-      toast.error('Authentication failed', 'Please check your credentials and try again.');
+      toast.error('Authentication failed', result.message || 'Please check your credentials and try again.');
     }
   };
 

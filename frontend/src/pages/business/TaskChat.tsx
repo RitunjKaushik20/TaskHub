@@ -43,7 +43,7 @@ const TaskChat: React.FC = () => {
   useEffect(() => {
     const loadTasks = async () => {
       try {
-        const res = await tasksApi.getTasks();
+        const res = await tasksApi.getMyTasks();
         if (res.success && res.data && res.data.length > 0) {
           setTasks(res.data);
           if (!activeTaskId) {

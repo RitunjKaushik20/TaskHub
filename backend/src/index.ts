@@ -20,6 +20,7 @@ import paymentRoutes from './routes/payments';
 import uploadRoutes from './routes/uploads';
 import { errorHandler } from './middleware/errorHandler';
 import { initSocketIO } from './lib/socket';
+import { isDisposableEmail } from './config/disposableEmails';
 
 const app = express();
 const server = http.createServer(app);
@@ -98,14 +99,26 @@ const googleConnectHandler = async (req: express.Request, res: express.Response)
   const name = req.query.name as string;
   const requestedRole = req.query.role as string;
   const avatar = req.query.avatarUrl as string;
+  const emailVerifiedFlag = req.query.email_verified as string;
 
   // If no email provided, redirect to frontend to open the Google Account Chooser
   if (!email || !email.includes('@')) {
     return res.redirect(`${FRONTEND_URL}/login?prompt_google=true`);
   }
 
+  const cleanEmail = email.toLowerCase().trim();
+
+  // Feature 3: never auto-create an account unless the Google payload has been
+  // explicitly verified AND the domain is not disposable. Both are enforced at
+  // the API layer so the gate cannot be bypassed from the browser.
+  if (isDisposableEmail(cleanEmail)) {
+    return res.redirect(`${FRONTEND_URL}/login?google_error=disposable`);
+  }
+  if (emailVerifiedFlag !== 'true') {
+    return res.redirect(`${FRONTEND_URL}/login?google_error=verification`);
+  }
+
   try {
-    const cleanEmail = email.toLowerCase().trim();
     let user = await prisma.user.findUnique({
       where: { email: cleanEmail },
     });
@@ -113,16 +126,28 @@ const googleConnectHandler = async (req: express.Request, res: express.Response)
     if (!user) {
       const assignedRole = requestedRole === 'BUSINESS' ? 'BUSINESS' : 'WORKER';
       const passwordHash = await bcrypt.hash(`google_oauth_${Date.now()}`, 10);
+      const displayName = name?.trim() || cleanEmail.split('@')[0];
       user = await prisma.user.create({
         data: {
-          name: name?.trim() || cleanEmail.split('@')[0],
+          name: displayName,
           email: cleanEmail,
           passwordHash,
           role: assignedRole,
           companyName: assignedRole === 'BUSINESS' ? (name ? `${name}'s Organization` : 'Business Inc') : null,
+          companyProfile:
+            assignedRole === 'BUSINESS'
+              ? {
+                  companyName: displayName ? `${displayName}'s Organization` : 'Business Inc',
+                  industryType: 'Other',
+                  websiteUrl: null,
+                  companySize: '1-10',
+                  servicesNeeded: ['Other'],
+                }
+              : undefined,
           avatarUrl: avatar?.trim() || `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(cleanEmail)}`,
           kycStatus: 'VERIFIED',
           status: 'ACTIVE',
+          emailVerified: true,
           wallet: {
             create: {
               availableBalance: 0.0,
@@ -155,6 +180,30 @@ app.use(errorHandler);
 
 // Initialize Socket.IO
 initSocketIO(server, allowedOrigins);
+
+// Part B — housekeeping: purge abandoned, unverified placeholder accounts so
+// they cannot accumulate/be reused later. Runs hourly; accounts older than 48h
+// and never verified are removed along with their (empty) wallet.
+const PURGE_UNVERIFIED_AFTER_MS = 48 * 60 * 60 * 1000;
+const purgeStaleUnverified = async () => {
+  try {
+    const cutoff = new Date(Date.now() - PURGE_UNVERIFIED_AFTER_MS);
+    const stale = await prisma.user.findMany({
+      where: {
+        emailVerified: false,
+        createdAt: { lt: cutoff },
+      },
+      select: { id: true },
+    });
+    if (stale.length === 0) return;
+    await prisma.user.deleteMany({ where: { id: { in: stale.map((u) => u.id) } } });
+    console.log(`[housekeeping] Purged ${stale.length} unverified account(s) older than 48h.`);
+  } catch (err) {
+    console.error('[housekeeping] Unverified-account purge failed:', err);
+  }
+};
+setInterval(purgeStaleUnverified, 60 * 60 * 1000);
+purgeStaleUnverified();
 
 server.listen(PORT, () => {
   console.log(`=================================================`);

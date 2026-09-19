@@ -4,6 +4,7 @@ import Razorpay from 'razorpay';
 import { PrismaClient } from '@prisma/client';
 import { sendSuccess, sendError } from '../utils/response';
 import { requireAuth, requireRoles, AuthenticatedRequest } from '../middleware/auth';
+import { requireEmailVerified } from '../middleware/emailVerified';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -97,6 +98,7 @@ router.post(
   '/razorpay/create-order',
   requireAuth,
   requireRoles(['BUSINESS', 'ADMIN']),
+  requireEmailVerified,
   handleCreateOrder
 );
 
@@ -105,6 +107,7 @@ router.post(
   '/razorpay',
   requireAuth,
   requireRoles(['BUSINESS', 'ADMIN']),
+  requireEmailVerified,
   handleCreateOrder
 );
 
@@ -113,6 +116,7 @@ router.post(
   '/razorpay/verify',
   requireAuth,
   requireRoles(['BUSINESS', 'ADMIN']),
+  requireEmailVerified,
   async (req: AuthenticatedRequest, res: Response) => {
     try {
       const {

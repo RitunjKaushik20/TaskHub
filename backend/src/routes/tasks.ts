@@ -2,6 +2,9 @@ import { Router, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { sendSuccess, sendError } from '../utils/response';
 import { requireAuth, requireRoles, AuthenticatedRequest } from '../middleware/auth';
+import { requireApprovedBusiness } from '../middleware/businessApproval';
+import { requireBusinessTaskOwner } from '../middleware/taskOwnership';
+import { requireEmailVerified } from '../middleware/emailVerified';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -11,7 +14,12 @@ router.get('/', async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { search, category, difficulty } = req.query;
 
-    const where: any = {};
+    const where: any = {
+      // Feature 2: only surface tasks published by APPROVED businesses in the
+      // public marketplace. Rejected/suspended/pending businesses' tasks are
+      // hidden from discovery.
+      business: { approvalStatus: 'APPROVED' },
+    };
 
     if (category && category !== 'ALL') {
       where.category = String(category);
@@ -49,7 +57,59 @@ router.get('/', async (req: AuthenticatedRequest, res: Response) => {
   }
 });
 
+// GET /api/tasks/mine
+// Part A (data isolation): business dashboard views MUST only ever list the
+// calling business's OWN task batches. Public marketplace data is never used
+// for the dashboard. This route must stay defined BEFORE /:id.
+router.get('/mine', requireAuth, requireRoles(['BUSINESS', 'ADMIN']), async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { search, category, difficulty, status } = req.query;
+
+    const where: any = {
+      businessId: req.user!.userId,
+    };
+
+    if (category && category !== 'ALL') {
+      where.category = String(category);
+    }
+    if (difficulty && difficulty !== 'ALL') {
+      where.difficulty = String(difficulty);
+    }
+    if (status && status !== 'ALL') {
+      where.status = String(status);
+    }
+    if (search) {
+      where.OR = [
+        { title: { contains: String(search) } },
+        { description: { contains: String(search) } },
+      ];
+    }
+
+    const tasks = await prisma.task.findMany({
+      where,
+      include: {
+        business: {
+          select: { name: true, companyName: true },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    const formatted = tasks.map((t) => ({
+      ...t,
+      requiredSkills: t.requiredSkills ? JSON.parse(t.requiredSkills) : [],
+      businessName: t.business.name,
+      businessCompany: t.business.companyName || t.business.name,
+    }));
+
+    return sendSuccess(res, 'Your tasks fetched successfully', formatted);
+  } catch (error: any) {
+    return sendError(res, error?.message || 'Failed to fetch your tasks', undefined, 500);
+  }
+});
+
 // GET /api/tasks/:id
+// Public marketplace detail endpoint (not used by the business dashboard).
 router.get('/:id', async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { id } = req.params;
@@ -76,7 +136,9 @@ router.get('/:id', async (req: AuthenticatedRequest, res: Response) => {
 });
 
 // POST /api/tasks
-router.post('/', requireAuth, requireRoles(['BUSINESS', 'ADMIN']), async (req: AuthenticatedRequest, res: Response) => {
+// Feature 2: task publishing is gated on the business account being approved.
+// Part B: publishing also requires a verified email.
+router.post('/', requireAuth, requireRoles(['BUSINESS', 'ADMIN']), requireApprovedBusiness, requireEmailVerified, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const {
       title,
@@ -125,7 +187,8 @@ router.post('/', requireAuth, requireRoles(['BUSINESS', 'ADMIN']), async (req: A
 });
 
 // POST /api/tasks/:id/accept
-router.post('/:id/accept', requireAuth, requireRoles(['WORKER', 'ADMIN']), async (req: AuthenticatedRequest, res: Response) => {
+// Part B: claiming a seat requires a verified email.
+router.post('/:id/accept', requireAuth, requireRoles(['WORKER', 'ADMIN']), requireEmailVerified, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { id } = req.params;
     const task = await prisma.task.findUnique({ where: { id } });
@@ -161,7 +224,9 @@ router.post('/:id/accept', requireAuth, requireRoles(['WORKER', 'ADMIN']), async
 });
 
 // PATCH /api/tasks/:id/status
-router.patch('/:id/status', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+// Feature 2: status changes that move a task toward publication are also gated.
+// Part A (data isolation): business may only update status of their OWN tasks.
+router.patch('/:id/status', requireAuth, requireApprovedBusiness, requireBusinessTaskOwner, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
@@ -186,18 +251,9 @@ router.patch('/:id/status', requireAuth, async (req: AuthenticatedRequest, res: 
 });
 
 // DELETE /api/tasks/:id
-router.delete('/:id', requireAuth, requireRoles(['BUSINESS', 'ADMIN']), async (req: AuthenticatedRequest, res: Response) => {
+router.delete('/:id', requireAuth, requireRoles(['BUSINESS', 'ADMIN']), requireBusinessTaskOwner, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { id } = req.params;
-    const task = await prisma.task.findUnique({ where: { id } });
-
-    if (!task) {
-      return sendError(res, 'Task not found', undefined, 404);
-    }
-
-    if (req.user!.role !== 'ADMIN' && task.businessId !== req.user!.userId) {
-      return sendError(res, 'Forbidden: You do not have permission to delete this task batch', undefined, 403);
-    }
 
     // Clean up related records
     await prisma.chatMessage.deleteMany({ where: { taskId: id } });

@@ -16,6 +16,8 @@ import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { authApi } from '../../api/auth';
 import { formatDate } from '../../lib/utils';
+import { INDUSTRY_TYPES, COMPANY_SIZES, SERVICES_NEEDED, type CompanyProfile } from '../../types';
+import { cn } from '../../lib/utils';
 
 const DEFAULT_BUSINESS_SKILLS = [
   'Data Annotation',
@@ -36,6 +38,14 @@ const BusinessProfile: React.FC = () => {
   const [avatarUrl, setAvatarUrl] = useState('');
   const [isSaving, setIsSaving] = useState(false);
 
+  // Feature 1: richer company profile state
+  const [profileCompanyName, setProfileCompanyName] = useState('');
+  const [industryType, setIndustryType] = useState('');
+  const [websiteUrl, setWebsiteUrl] = useState('');
+  const [companySize, setCompanySize] = useState('');
+  const [servicesNeeded, setServicesNeeded] = useState<string[]>([]);
+  const [profileError, setProfileError] = useState<string | null>(null);
+
   useEffect(() => {
     if (user) {
       setName(user.name || '');
@@ -43,6 +53,12 @@ const BusinessProfile: React.FC = () => {
       setBio(user.bio || '');
       setSkills(user.skills || '');
       setAvatarUrl(user.avatarUrl || '');
+      const profile: CompanyProfile | null | undefined = user.companyProfile;
+      setProfileCompanyName(profile?.companyName || '');
+      setIndustryType(profile?.industryType || '');
+      setWebsiteUrl(profile?.websiteUrl || '');
+      setCompanySize(profile?.companySize || '');
+      setServicesNeeded(profile?.servicesNeeded || []);
     }
   }, [user]);
 
@@ -60,6 +76,35 @@ const BusinessProfile: React.FC = () => {
     }
 
     setIsSaving(true);
+    setProfileError(null);
+
+    // Validate the Feature 1 company profile if the user is editing it.
+    let companyProfilePayload: CompanyProfile | undefined;
+    if (profileCompanyName.trim() || industryType || companySize || servicesNeeded.length > 0) {
+      if (!profileCompanyName.trim()) {
+        setProfileError('Company name is required for your company profile.');
+        setIsSaving(false);
+        return;
+      }
+      if (!industryType) {
+        setProfileError('Please select an industry type.');
+        setIsSaving(false);
+        return;
+      }
+      if (!companySize) {
+        setProfileError('Please select your team size.');
+        setIsSaving(false);
+        return;
+      }
+      companyProfilePayload = {
+        companyName: profileCompanyName.trim(),
+        industryType,
+        websiteUrl: websiteUrl.trim() || null,
+        companySize,
+        servicesNeeded: servicesNeeded.length > 0 ? servicesNeeded : ['Other'],
+      };
+    }
+
     try {
       const res = await authApi.updateProfile({
         name: name.trim(),
@@ -67,6 +112,7 @@ const BusinessProfile: React.FC = () => {
         bio: bio.trim() || undefined,
         skills: skills.trim() || undefined,
         avatarUrl: avatarUrl.trim() || undefined,
+        companyProfile: companyProfilePayload,
       });
 
       if (res.success) {
@@ -224,6 +270,121 @@ const BusinessProfile: React.FC = () => {
                 className="w-full glass-input !pl-11 !pr-4 text-xs"
               />
             </div>
+          </div>
+
+          {/* Feature 1: Company Profile editor */}
+          <div className="p-5 rounded-2xl bg-indigo-50/50 border border-indigo-200 space-y-4">
+            <div>
+              <h3 className="text-sm font-extrabold text-indigo-900 flex items-center gap-2">
+                <Building2 className="w-4 h-4 text-indigo-600" /> Company Profile Details
+              </h3>
+              <p className="text-[11px] text-indigo-700/80 font-medium mt-0.5">
+                Used for admin approval review and shown to workers on the marketplace.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-900 mb-1.5">
+                  Legal / Brand Name <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={profileCompanyName}
+                  onChange={(e) => setProfileCompanyName(e.target.value)}
+                  placeholder="CyberNet AI Labs Inc."
+                  className="w-full glass-input !px-4 text-xs font-semibold bg-white"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-900 mb-1.5">
+                  Industry Type <span className="text-rose-500">*</span>
+                </label>
+                <select
+                  value={industryType}
+                  onChange={(e) => setIndustryType(e.target.value)}
+                  className="w-full glass-input !px-4 text-xs font-semibold bg-white"
+                >
+                  <option value="">Select industry...</option>
+                  {INDUSTRY_TYPES.map((t) => (
+                    <option key={t} value={t}>{t}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-900 mb-1.5">
+                  Website URL <span className="text-slate-500 text-[10px] font-normal">(Optional)</span>
+                </label>
+                <input
+                  type="text"
+                  value={websiteUrl}
+                  onChange={(e) => setWebsiteUrl(e.target.value)}
+                  placeholder="https://company.com"
+                  className="w-full glass-input !px-4 text-xs bg-white"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-900 mb-1.5">
+                  Team Size <span className="text-rose-500">*</span>
+                </label>
+                <select
+                  value={companySize}
+                  onChange={(e) => setCompanySize(e.target.value)}
+                  className="w-full glass-input !px-4 text-xs font-semibold bg-white"
+                >
+                  <option value="">Select team size...</option>
+                  {COMPANY_SIZES.map((s) => (
+                    <option key={s} value={s}>{s} people</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <span className="block text-xs font-bold text-slate-900 mb-1.5">Services You Need</span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {SERVICES_NEEDED.map((service) => {
+                  const checked = servicesNeeded.includes(service);
+                  return (
+                    <label
+                      key={service}
+                      className={cn(
+                        'flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-semibold cursor-pointer transition-all',
+                        checked
+                          ? 'bg-indigo-600 border-indigo-600 text-white shadow-sm'
+                          : 'bg-white border-slate-300 text-slate-700 hover:bg-slate-50'
+                      )}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() =>
+                          setServicesNeeded(
+                            checked
+                              ? servicesNeeded.filter((x) => x !== service)
+                              : [...servicesNeeded, service]
+                          )
+                        }
+                        className="sr-only"
+                      />
+                      <CheckCircle2 className={cn('w-3.5 h-3.5', checked ? 'text-white' : 'text-slate-400')} />
+                      {service}
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+
+            {user?.approvalStatus && user.approvalStatus !== 'APPROVED' && (
+              <p className="text-[11px] text-indigo-700/90 font-semibold flex items-center gap-1.5">
+                <Briefcase className="w-3.5 h-3.5" /> Updating this profile may re-trigger admin review of your account.
+              </p>
+            )}
+            {profileError && (
+              <p className="text-[11px] text-rose-600 font-semibold flex items-center gap-1.5">
+                <ShieldCheck className="w-3.5 h-3.5" /> {profileError}
+              </p>
+            )}
           </div>
 
           {/* Live Skill Badges Preview */}

@@ -1,4 +1,4 @@
-import { Router, Response } from 'express';
+import { Router, Response, Request } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { sendSuccess, sendError } from '../utils/response';
 import { requireAuth, requireRoles, AuthenticatedRequest } from '../middleware/auth';
@@ -8,6 +8,8 @@ const prisma = new PrismaClient();
 
 // Require ADMIN role for all routes in this router
 router.use(requireAuth, requireRoles(['ADMIN']));
+
+const APPROVAL_STATUS = ['PENDING', 'APPROVED', 'REJECTED', 'SUSPENDED'] as const;
 
 // GET /api/admin/users
 router.get('/users', async (req: AuthenticatedRequest, res: Response) => {
@@ -26,6 +28,9 @@ router.get('/users', async (req: AuthenticatedRequest, res: Response) => {
       role: u.role,
       status: u.status,
       kycStatus: u.kycStatus,
+      approvalStatus: u.approvalStatus,
+      companyName: u.companyName,
+      companyProfile: u.companyProfile,
       joinedDate: u.createdAt.toISOString().split('T')[0],
       tasksCount: u.role === 'BUSINESS' ? u._count.postedTasks : u._count.submissions,
     }));
@@ -79,6 +84,154 @@ router.get('/tasks', async (req: AuthenticatedRequest, res: Response) => {
     return sendSuccess(res, 'Admin tasks fetched', formatted);
   } catch (error: any) {
     return sendError(res, error?.message || 'Failed to fetch admin tasks', undefined, 500);
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Feature 2 — Business Approvals
+// ---------------------------------------------------------------------------
+
+// GET /api/admin/businesses
+// Lists business accounts for review. Pending accounts are listed first,
+// then approved/rejected/suspended in created order.
+router.get('/businesses', async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { filter } = req.query as { filter?: string };
+
+    const businesses = await prisma.user.findMany({
+      where: {
+        role: 'BUSINESS',
+        ...(filter && APPROVAL_STATUS.includes(filter as any)
+          ? { approvalStatus: filter as any }
+          : {}),
+      },
+      include: {
+        _count: { select: { postedTasks: true } },
+      },
+      orderBy: [
+        // Secondary ordering only (created desc). Pending-first ordering is done
+        // in-process below so PENDING always floats to the top of the queue.
+        { createdAt: 'desc' },
+      ],
+    });
+
+    // Move PENDING to the front regardless of enum order.
+    const priority = (status: string) =>
+      status === 'PENDING' ? 0 : status === 'SUSPENDED' ? 3 : status === 'REJECTED' ? 2 : 1;
+    const sorted = [...businesses].sort((a, b) => priority(a.approvalStatus) - priority(b.approvalStatus));
+
+    const formatted = sorted.map((b) => ({
+      id: b.id,
+      name: b.name,
+      email: b.email,
+      companyName: b.companyName,
+      companyProfile: b.companyProfile,
+      approvalStatus: b.approvalStatus,
+      kycStatus: b.kycStatus,
+      status: b.status,
+      createdAt: b.createdAt,
+      tasksCount: b._count.postedTasks,
+      joinedDate: b.createdAt.toISOString().split('T')[0],
+    }));
+
+    return sendSuccess(res, 'Business accounts fetched', formatted);
+  } catch (error: any) {
+    return sendError(res, error?.message || 'Failed to fetch business accounts', undefined, 500);
+  }
+});
+
+// POST /api/admin/businesses/:id/approval
+// action: 'APPROVE' | 'REJECT' | 'SUSPEND'  (reason optional, recommended)
+// Logged to AdminApprovalLog + AuditLog. Email/notification is stubbed (TODO).
+router.post('/businesses/:id/approval', async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { action, reason } = req.body;
+
+    if (!action || !['APPROVE', 'REJECT', 'SUSPEND'].includes(action)) {
+      return sendError(res, 'Invalid approval action. Use APPROVE, REJECT or SUSPEND.', undefined, 400);
+    }
+
+    const business = await prisma.user.findUnique({ where: { id } });
+    if (!business || business.role !== 'BUSINESS') {
+      return sendError(res, 'Business account not found', undefined, 404);
+    }
+
+    const approvalStatus =
+      action === 'APPROVE' ? 'APPROVED' : action === 'REJECT' ? 'REJECTED' : 'SUSPENDED';
+
+    const updated = await prisma.user.update({
+      where: { id },
+      data: { approvalStatus },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        companyName: true,
+        companyProfile: true,
+        approvalStatus: true,
+        kycStatus: true,
+        status: true,
+        createdAt: true,
+      },
+    });
+
+    const admin = await prisma.user.findUnique({
+      where: { id: req.user!.userId },
+      select: { name: true, email: true },
+    });
+
+    // Audit trail: dedicated approval log + generic audit log entry
+    await prisma.adminApprovalLog.create({
+      data: {
+        adminId: req.user!.userId,
+        adminName: admin?.name || req.user!.email || 'Admin',
+        businessId: business.id,
+        businessEmail: business.email,
+        action: `${approvalStatus}`,
+        reason: reason || null,
+      },
+    });
+
+    await prisma.auditLog.create({
+      data: {
+        actorName: admin?.name || req.user!.email || 'Admin',
+        actorRole: 'ADMIN',
+        action: `BUSINESS_${approvalStatus}`,
+        target: `${business.email} (${business.name})`,
+        ipAddress: req.ip || 'unknown',
+      },
+    });
+
+    // TODO(notification): send email / in-app notification to the business owner
+    // when their approval status changes. No email/notification service exists in
+    // this codebase yet, so this is intentionally stubbed — wire it here later.
+    // await notifications.send({ to: business.email, template: `business_${approvalStatus.toLowerCase()}`, reason });
+
+    return sendSuccess(res, `Business account ${approvalStatus === 'APPROVED' ? 'approved' : approvalStatus === 'REJECTED' ? 'rejected' : 'suspended'}`, {
+      ...updated,
+      companyProfile: updated.companyProfile,
+      notificationSent: false,
+      notificationNote: 'TODO: email/notification not wired — see /api/admin/businesses/:id/approval',
+    });
+  } catch (error: any) {
+    return sendError(res, error?.message || 'Failed to update business approval status', undefined, 500);
+  }
+});
+
+// GET /api/admin/businesses/:id/approval-history
+// Returns the audit trail for a single business account.
+router.get('/businesses/:id/approval-history', async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const logs = await prisma.adminApprovalLog.findMany({
+      where: { businessId: id },
+      orderBy: { timestamp: 'desc' },
+    });
+    return sendSuccess(res, 'Business approval history fetched', logs);
+  } catch (error: any) {
+    return sendError(res, error?.message || 'Failed to fetch approval history', undefined, 500);
   }
 });
 
@@ -206,25 +359,95 @@ router.get('/audit-logs', async (req: AuthenticatedRequest, res: Response) => {
   }
 });
 
-// GET /api/admin/analytics
-router.get('/analytics', async (req: AuthenticatedRequest, res: Response) => {
+// ---------------------------------------------------------------------------
+// Part B — Live SuperAdmin dashboard stats
+// ---------------------------------------------------------------------------
+// These are real, aggregated directly from the database at request time (no
+// cache, no hardcoded figures). The Overview page consumes this and refreshes
+// via Socket.IO (`dashboard:update`) whenever an event moves a number:
+//   • workers/businesses register            -> auth register
+//   • a business funds escrow (task budget)  -> payments verify (DEPOSIT_ESCROW)
+//   • a payout is released to a worker       -> submissions approve (TASK_PAYOUT)
+// Empty-platform reads return a true zero-state ($0 / 0 / 0 registered / no
+// activity) rather than fabricated growth numbers.
+router.get('/dashboard-stats', async (req: AuthenticatedRequest, res: Response) => {
   try {
-    return sendSuccess(res, 'Admin analytics fetched', {
-      totalGmv: 42850.0,
-      platformRevenue: 2142.5,
-      activeTasksCount: 38,
-      activeWorkersCount: 1420,
-      activeBusinessesCount: 185,
-      monthlyGrowth: [
-        { month: 'May', volume: 12000, revenue: 600 },
-        { month: 'Jun', volume: 18500, revenue: 925 },
-        { month: 'Jul', volume: 27000, revenue: 1350 },
-        { month: 'Aug', volume: 34500, revenue: 1725 },
-        { month: 'Sep', volume: 42850, revenue: 2142.5 },
-      ],
+    // Escrow-locked GMV = every COMPLETED DEPOSIT_ESCROW (task budget funded
+    // and locked on the platform). This is the real, settled GMV.
+    const gmvAgg = await prisma.transaction.aggregate({
+      where: { type: 'DEPOSIT_ESCROW', status: 'COMPLETED' },
+      _sum: { amount: true },
+    });
+
+    // Direct settlements = every COMPLETED TASK_PAYOUT actually released to a
+    // worker's wallet.
+    const payoutAgg = await prisma.transaction.aggregate({
+      where: { type: 'TASK_PAYOUT', status: 'COMPLETED' },
+      _sum: { amount: true },
+    });
+
+    const [activeWorkers, activeBusinesses, usersForGrowth] = await Promise.all([
+      prisma.user.count({ where: { role: 'WORKER', status: 'ACTIVE' } }),
+      prisma.user.count({ where: { role: 'BUSINESS', status: 'ACTIVE' } }),
+      prisma.user.findMany({
+        select: { role: true, createdAt: true },
+        orderBy: { createdAt: 'asc' },
+      }),
+    ]);
+
+    // Real platform health signal: the most recent DB write across the
+    // transactional tables (escrows, payouts, tasks, registrations). A null
+    // value (nothing has ever been written) renders as "No activity yet".
+    const lastTx = await prisma.transaction.aggregate({
+      _max: { createdAt: true },
+    });
+    const lastTask = await prisma.task.aggregate({
+      _max: { createdAt: true },
+    });
+    const lastUser = await prisma.user.aggregate({
+      _max: { createdAt: true },
+    });
+    const lastDbWriteAt = [lastTx._max.createdAt, lastTask._max.createdAt, lastUser._max.createdAt]
+      .filter((d): d is Date => Boolean(d))
+      .sort((a, b) => b.getTime() - a.getTime())[0] || null;
+
+    // Real registration growth: workers vs businesses bucketed by month over
+    // the trailing 6 months (empty when there is no data yet).
+    const now = new Date();
+    const buckets: { key: string; label: string; workers: number; businesses: number }[] = [];
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      buckets.push({
+        key: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`,
+        label: d.toLocaleString('en-US', { month: 'short' }),
+        workers: 0,
+        businesses: 0,
+      });
+    }
+    for (const u of usersForGrowth) {
+      const key = `${u.createdAt.getFullYear()}-${String(u.createdAt.getMonth() + 1).padStart(2, '0')}`;
+      const bucket = buckets.find((b) => b.key === key);
+      if (!bucket) continue; // outside trailing window
+      if (u.role === 'WORKER') bucket.workers += 1;
+      else if (u.role === 'BUSINESS') bucket.businesses += 1;
+    }
+    const monthlyGrowth = buckets
+      .filter((b) => b.workers > 0 || b.businesses > 0)
+      .map((b) => ({ month: b.label, workers: b.workers, businesses: b.businesses }));
+
+    return sendSuccess(res, 'Admin dashboard stats fetched', {
+      totalGmv: gmvAgg._sum.amount || 0,
+      payoutsSettled: payoutAgg._sum.amount || 0,
+      activeWorkersCount: activeWorkers,
+      activeBusinessesCount: activeBusinesses,
+      platformHealth: {
+        dbOnline: true,
+        lastDbWriteAt: lastDbWriteAt ? lastDbWriteAt.toISOString() : null,
+      },
+      monthlyGrowth,
     });
   } catch (error: any) {
-    return sendError(res, error?.message || 'Failed to fetch analytics', undefined, 500);
+    return sendError(res, error?.message || 'Failed to fetch dashboard stats', undefined, 500);
   }
 });
 

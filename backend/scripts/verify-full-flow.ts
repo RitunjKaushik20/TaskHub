@@ -2,8 +2,11 @@ import { io as SocketClient } from 'socket.io-client';
 import http from 'http';
 import fs from 'fs';
 import path from 'path';
+import { PrismaClient } from '@prisma/client';
+import bcrypt from 'bcryptjs';
 
 const API_BASE = 'http://localhost:8000';
+const prisma = new PrismaClient();
 
 interface ApiResponse<T = any> {
   success: boolean;
@@ -66,6 +69,32 @@ function fail(step: string, details: string): never {
   process.exit(1);
 }
 
+// Part B: registration is OTP-gated. A fresh account is unverified and gets no
+// session. This harness completes the loop through the real /otp/verify
+// endpoint — it pre-seeds the DB with a known hashed code (bcrypt), exactly as
+// the email service would, then submits it over the API. The email delivery
+// itself is exercised by the SMTP/dev transport and never automated here.
+async function completeOtpVerification(email: string): Promise<{ token: string; role: string }> {
+  const code = '123456';
+  await prisma.user.update({
+    where: { email },
+    data: {
+      otpHash: await bcrypt.hash(code, 10),
+      otpExpiresAt: new Date(Date.now() + 10 * 60 * 1000),
+      otpAttempts: 0,
+    },
+  });
+  const verifyRes = await request('/api/auth/otp/verify', {
+    method: 'POST',
+    body: { email, code },
+  });
+  if (!verifyRes.success || !verifyRes.data?.token) {
+    fail('Email OTP Verification', JSON.stringify(verifyRes));
+  }
+  pass('Email OTP Verified (POST /api/auth/otp/verify)', `User: ${email}`);
+  return { token: verifyRes.data.token, role: verifyRes.data.role };
+}
+
 async function run() {
   console.log(colors.cyan('\n======================================================'));
   console.log(colors.bold('  🚀 TaskHub Full End-to-End Audit & Verification'));
@@ -93,15 +122,87 @@ async function run() {
       password: 'password123',
       role: 'BUSINESS',
       companyName: 'CyberNet Autonomous Labs',
+      companyProfile: {
+        companyName: 'CyberNet Autonomous Labs',
+        industryType: 'SaaS',
+        websiteUrl: 'https://cybernet-autonomous.ai',
+        companySize: '51-200',
+        servicesNeeded: ['AI Data Labeling', 'App QA'],
+      },
     },
   });
 
-  if (regBusiness.success && regBusiness.data?.token) {
-    businessToken = regBusiness.data.token;
-    pass('Business Registration', `User: ${regBusiness.data.email}, Role: ${regBusiness.data.role}`);
+  if (regBusiness.success && regBusiness.data?.pendingEmailVerification) {
+    pass('Business Registration', `User: ${regBusiness.data.email}, Role: ${regBusiness.data.role} (pending OTP)`);
   } else {
     fail('Business Registration', JSON.stringify(regBusiness));
   }
+
+  // Complete the Part B email-verification loop to unlock the account.
+  const businessSession = await completeOtpVerification(businessEmail);
+  businessToken = businessSession.token;
+
+  // Feature 2: new businesses start PENDING. Simulate the Super Admin approval
+  // step so the rest of the E2E flow (task posting -> escrow -> payout) can run.
+  const businessUser = await prisma.user.findUnique({
+    where: { email: businessEmail },
+    select: { id: true, approvalStatus: true },
+  });
+  if (!businessUser) {
+    fail('Business Approval Lookup', `Could not find business ${businessEmail} in DB`);
+  }
+  if (businessUser!.approvalStatus !== 'APPROVED') {
+    await prisma.user.update({
+      where: { id: businessUser!.id },
+      data: { approvalStatus: 'APPROVED' },
+    });
+    pass('Business Approved by Admin (simulated)', `approvalStatus -> APPROVED`);
+  } else {
+    pass('Business Already Approved', 'No admin action required');
+  }
+
+  // Negative test: a freshly registered business should be blocked from posting.
+  const pendingEmail = `pending_${timestamp}@cybernet.ai`;
+  const regPending = await request('/api/auth/register', {
+    method: 'POST',
+    body: {
+      name: 'Pending Corp',
+      email: pendingEmail,
+      password: 'password123',
+      role: 'BUSINESS',
+      companyProfile: {
+        companyName: 'Pending Corp',
+        industryType: 'SaaS',
+        websiteUrl: 'https://pending.corp',
+        companySize: '1-10',
+        servicesNeeded: ['App QA'],
+      },
+    },
+  });
+  if (!regPending.success || !regPending.data?.pendingEmailVerification) {
+    fail('Pending Business Registration', JSON.stringify(regPending));
+  }
+  const pendingSession = await completeOtpVerification(pendingEmail);
+  const blockedPost = await request('/api/tasks', {
+    method: 'POST',
+    token: pendingSession.token,
+    body: {
+      title: 'Should be blocked for pending business',
+      description: 'This task must never be allowed to publish while pending.',
+      instructions: 'Should not run',
+      category: 'AI & Data Annotation',
+      difficulty: 'BEGINNER',
+      reward: 1.0,
+      workerLimit: 1,
+      deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      requiredSkills: ['Test'],
+      proofRequirements: 'None',
+    },
+  });
+  if (!blockedPost || blockedPost.success !== false || blockedPost.data?.id) {
+    fail('Pending Business Task Gate', `Expected 403 rejection, got: ${JSON.stringify(blockedPost)}`);
+  }
+  pass('Approval Gate Blocks Pending Business', 'POST /api/tasks returned a rejection for a pending account');
 
   // Post Task
   const postTask = await request('/api/tasks', {
@@ -173,10 +274,11 @@ async function run() {
     },
   });
 
-  if (!regWorker.success || !regWorker.data?.token) {
+  if (!regWorker.success || !regWorker.data?.pendingEmailVerification) {
     fail('Worker Registration', JSON.stringify(regWorker));
   }
-  workerToken = regWorker.data.token;
+  const workerSession = await completeOtpVerification(workerEmail);
+  workerToken = workerSession.token;
   pass('Worker Registration', `User: ${regWorker.data.email}`);
 
   // Check initial worker wallet balance is 0.00

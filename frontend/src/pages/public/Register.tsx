@@ -5,8 +5,9 @@ import { z } from 'zod';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
-import { UserPlus, User, Briefcase, Mail, Lock, Building, ArrowRight, Eye, EyeOff, Shield, AlertTriangle, Loader2 } from 'lucide-react';
+import { UserPlus, User, Briefcase, Mail, Lock, Building, ArrowRight, Eye, EyeOff, Shield, AlertTriangle, Loader2, Globe, Users, Layers, CheckCircle2 } from 'lucide-react';
 import { cn } from '../../lib/utils';
+import { INDUSTRY_TYPES, COMPANY_SIZES, SERVICES_NEEDED } from '../../types';
 
 const registerSchema = z
   .object({
@@ -16,6 +17,14 @@ const registerSchema = z
     confirmPassword: z.string().min(8, 'Confirm password must be at least 8 characters'),
     role: z.enum(['WORKER', 'BUSINESS']),
     companyName: z.string().optional(),
+    // Feature 1: richer company profile fields for business signup
+    companyCompanyName: z.string().min(1, 'Company name is required').optional(),
+    industryType: z.string().optional(),
+    websiteUrl: z
+      .union([z.literal(''), z.string().url('Please provide a valid website URL (e.g. https://company.com)')])
+      .optional(),
+    companySize: z.string().optional(),
+    servicesNeeded: z.array(z.string()).optional(),
     agreeToTerms: z.boolean().refine((val) => val === true, {
       message: 'You must agree to the Terms of Service',
     }),
@@ -23,6 +32,38 @@ const registerSchema = z
   .refine((data) => data.password === data.confirmPassword, {
     message: 'Passwords do not match',
     path: ['confirmPassword'],
+  })
+  .superRefine((data, ctx) => {
+    if (data.role === 'BUSINESS') {
+      if (!data.companyCompanyName || !data.companyCompanyName.trim()) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Company legal/brand name is required',
+          path: ['companyCompanyName'],
+        });
+      }
+      if (!data.industryType) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Please select your industry type',
+          path: ['industryType'],
+        });
+      }
+      if (!data.companySize) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Please select your team size',
+          path: ['companySize'],
+        });
+      }
+      if (!data.servicesNeeded || data.servicesNeeded.length === 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Select at least one service you need',
+          path: ['servicesNeeded'],
+        });
+      }
+    }
   });
 
 type RegisterFormValues = z.infer<typeof registerSchema>;
@@ -121,22 +162,43 @@ const Register: React.FC = () => {
     defaultValues: {
       role: 'WORKER',
       agreeToTerms: true,
+      servicesNeeded: [] as string[],
+      websiteUrl: '',
     },
   });
 
   const selectedRole = useWatch({ control, name: 'role' });
   const watchPassword = useWatch({ control, name: 'password' });
+  const watchServices = useWatch({ control, name: 'servicesNeeded' }) || [];
 
   const onSubmit = async (data: RegisterFormValues) => {
-    const success = await registerAuth({
+    const companyProfile =
+      data.role === 'BUSINESS'
+        ? {
+            companyName: (data.companyCompanyName || data.companyName || '').trim(),
+            industryType: (data.industryType || 'Other') as string,
+            websiteUrl: data.websiteUrl?.trim() || null,
+            companySize: (data.companySize || '1-10') as string,
+            servicesNeeded: data.servicesNeeded || [],
+          }
+        : undefined;
+
+    const result = await registerAuth({
       name: data.name,
       email: data.email,
       password: data.password,
       role: data.role,
-      companyName: data.role === 'BUSINESS' ? data.companyName : undefined,
+      companyName: data.role === 'BUSINESS' ? (companyProfile ? companyProfile.companyName : data.companyName) : undefined,
+      companyProfile,
     });
 
-    if (success) {
+    if (result.ok) {
+      // Part B: accounts start unverified; route to the OTP step before login.
+      if (result.pendingEmailVerification) {
+        toast.success('Account created!', `A verification code was sent to ${result.email}.`);
+        navigate(`/verify-email?email=${encodeURIComponent(result.email || '')}`, { replace: false });
+        return;
+      }
       toast.success('Registration successful!', `Welcome to TaskHub as a ${data.role}.`);
       if (data.role === 'BUSINESS') {
         navigate('/business');
@@ -144,7 +206,7 @@ const Register: React.FC = () => {
         navigate('/worker');
       }
     } else {
-      toast.error('Registration failed', 'Unable to create account. Please try again.');
+      toast.error('Registration failed', result.message || 'Unable to create account. Please try again.');
     }
   };
 
@@ -337,24 +399,6 @@ const Register: React.FC = () => {
             )}
           </div>
 
-          {/* Conditional Company Name Field for BUSINESS role */}
-          {selectedRole === 'BUSINESS' && (
-            <div>
-              <label className="block text-xs font-bold text-slate-900 mb-1.5">
-                Company Name <span className="text-slate-500 font-normal">(Optional)</span>
-              </label>
-              <div className="relative">
-                <Building className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 z-10 pointer-events-none" />
-                <input
-                  type="text"
-                  {...register('companyName')}
-                  placeholder="CyberNet AI Labs Inc."
-                  className="w-full glass-input !pl-11 !pr-4 py-3 text-xs rounded-xl border-slate-300 text-slate-900 placeholder:text-slate-400 bg-white"
-                />
-              </div>
-            </div>
-          )}
-
           <div>
             <label className="block text-xs font-bold text-slate-900 mb-1.5">Password</label>
             <div className="relative">
@@ -411,6 +455,154 @@ const Register: React.FC = () => {
               </p>
             )}
           </div>
+
+          {/* Feature 1: Enhanced Business Onboarding — richer company profile */}
+          {selectedRole === 'BUSINESS' && (
+            <div className="p-4 rounded-2xl bg-indigo-50/50 border border-indigo-200 space-y-4 animate-in fade-in-50 duration-300">
+              <div className="flex items-center gap-2">
+                <Layers className="w-4 h-4 text-indigo-600" />
+                <h3 className="text-xs font-extrabold text-indigo-900 uppercase tracking-wider">
+                  Company Profile Details
+                </h3>
+                <span className="text-[9px] text-indigo-600 font-bold bg-indigo-100 px-1.5 py-0.5 rounded border border-indigo-200">
+                  REQUIRED
+                </span>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-900 mb-1.5">
+                  Company Legal / Brand Name <span className="text-rose-500">*</span>
+                </label>
+                <div className="relative">
+                  <Building className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 z-10 pointer-events-none" />
+                  <input
+                    type="text"
+                    {...register('companyCompanyName')}
+                    placeholder="CyberNet AI Labs Inc."
+                    className="w-full glass-input !pl-11 !pr-4 py-3 text-xs rounded-xl border-slate-300 text-slate-900 placeholder:text-slate-400 bg-white"
+                  />
+                </div>
+                {errors.companyCompanyName && (
+                  <p className="text-[10px] text-rose-500 mt-1 flex items-center gap-1 font-medium">
+                    <AlertTriangle className="w-3 h-3" /> {errors.companyCompanyName.message}
+                  </p>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-900 mb-1.5">
+                    Industry Type <span className="text-rose-500">*</span>
+                  </label>
+                  <select
+                    {...register('industryType')}
+                    className="w-full glass-input text-xs rounded-xl border-slate-300 text-slate-900 bg-white"
+                  >
+                    <option value="">Select industry...</option>
+                    {INDUSTRY_TYPES.map((type) => (
+                      <option key={type} value={type}>
+                        {type}
+                      </option>
+                    ))}
+                  </select>
+                  {errors.industryType && (
+                    <p className="text-[10px] text-rose-500 mt-1 flex items-center gap-1 font-medium">
+                      <AlertTriangle className="w-3 h-3" /> {errors.industryType.message}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-900 mb-1.5">
+                    Team Size <span className="text-rose-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <Users className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 z-10 pointer-events-none" />
+                    <select
+                      {...register('companySize')}
+                      className="w-full glass-input !pl-11 text-xs rounded-xl border-slate-300 text-slate-900 bg-white"
+                    >
+                      <option value="">Select team size...</option>
+                      {COMPANY_SIZES.map((size) => (
+                        <option key={size} value={size}>
+                          {size} people
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  {errors.companySize && (
+                    <p className="text-[10px] text-rose-500 mt-1 flex items-center gap-1 font-medium">
+                      <AlertTriangle className="w-3 h-3" /> {errors.companySize.message}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-900 mb-1.5">
+                  Company Website URL <span className="text-slate-500 text-[10px] font-normal">(Optional)</span>
+                </label>
+                <div className="relative">
+                  <Globe className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 z-10 pointer-events-none" />
+                  <input
+                    type="text"
+                    {...register('websiteUrl')}
+                    placeholder="https://company.com"
+                    className="w-full glass-input !pl-11 !pr-4 py-3 text-xs rounded-xl border-slate-300 text-slate-900 placeholder:text-slate-400 bg-white"
+                  />
+                </div>
+                {errors.websiteUrl && (
+                  <p className="text-[10px] text-rose-500 mt-1 flex items-center gap-1 font-medium">
+                    <AlertTriangle className="w-3 h-3" /> {errors.websiteUrl.message}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <span className="block text-xs font-bold text-slate-900 mb-1.5">
+                  Services You Need <span className="text-rose-500">*</span>
+                </span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {SERVICES_NEEDED.map((service) => {
+                    const checked = (watchServices || []).includes(service);
+                    return (
+                      <label
+                        key={service}
+                        className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-semibold cursor-pointer transition-all ${
+                          checked
+                            ? 'bg-indigo-600 border-indigo-600 text-white shadow-sm'
+                            : 'bg-white border-slate-300 text-slate-700 hover:bg-slate-50'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={() => {
+                            const next = checked
+                              ? watchServices.filter((s) => s !== service)
+                              : [...(watchServices || []), service];
+                            setValue('servicesNeeded', next, { shouldValidate: true });
+                          }}
+                          className="sr-only"
+                        />
+                        <CheckCircle2 className={`w-3.5 h-3.5 ${checked ? 'text-white' : 'text-slate-400'}`} />
+                        {service}
+                      </label>
+                    );
+                  })}
+                </div>
+                {errors.servicesNeeded && (
+                  <p className="text-[10px] text-rose-500 mt-1 flex items-center gap-1 font-medium">
+                    <AlertTriangle className="w-3 h-3" /> {errors.servicesNeeded.message}
+                  </p>
+                )}
+              </div>
+
+              <p className="text-[10px] text-indigo-700/80 font-medium flex items-center gap-1.5">
+                <Shield className="w-3.5 h-3.5" /> Your business will be reviewed by a TaskHub admin before you can publish tasks.
+              </p>
+            </div>
+          )}
 
           <div className="pt-1">
             <label className="flex items-start gap-2 cursor-pointer">

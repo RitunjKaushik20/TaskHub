@@ -19,6 +19,7 @@ import {
   LogOut,
   Menu,
   X,
+  ClipboardCheck,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
@@ -67,6 +68,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ role }) => {
     return [
       { name: 'Admin Dashboard', path: '/admin', icon: LayoutDashboard },
       { name: 'User Management', path: '/admin/users', icon: Users },
+      { name: 'Business Approvals', path: '/admin/business-approvals', icon: ClipboardCheck },
       { name: 'Task Oversight', path: '/admin/tasks', icon: ListTodo },
       { name: 'Submission Logs', path: '/admin/submissions', icon: CheckCircle2 },
       { name: 'KYC / Verification', path: '/admin/verification', icon: ShieldCheck },

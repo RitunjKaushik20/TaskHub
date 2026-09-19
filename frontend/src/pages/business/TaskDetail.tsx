@@ -30,7 +30,7 @@ const BusinessTaskDetail: React.FC = () => {
     const loadTask = async () => {
       setIsLoading(true);
       try {
-        const res = await tasksApi.getTasks();
+        const res = await tasksApi.getMyTasks();
         if (res.success && res.data) {
           const match = res.data.find((t) => t.id === id);
           setTask(match || null);

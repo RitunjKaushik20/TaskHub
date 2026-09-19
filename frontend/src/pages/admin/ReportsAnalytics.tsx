@@ -1,39 +1,115 @@
-import React from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
+import { TrendingUp, Users, Activity } from 'lucide-react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
-import { Users } from 'lucide-react';
+import { adminApi } from '../../api/admin';
+import { getSocket } from '../../lib/socket';
+import type { AdminDashboardStats } from '../../types';
 
-const analyticsData = [
-  { month: 'May', workers: 450, businesses: 40 },
-  { month: 'Jun', workers: 720, businesses: 85 },
-  { month: 'Jul', workers: 980, businesses: 120 },
-  { month: 'Aug', workers: 1240, businesses: 155 },
-  { month: 'Sep', workers: 1420, businesses: 185 },
-];
+// Empty-platform default (a genuine zero-point, zero fabricated figures):
+// no registrations, no revenue, no activity yet. Every number is overwritten
+// by the live `/admin/dashboard-stats` response the moment it arrives.
+const ZERO_POINT_STATE: AdminDashboardStats = {
+  totalGmv: 0,
+  payoutsSettled: 0,
+  activeWorkersCount: 0,
+  activeBusinessesCount: 0,
+  platformHealth: { dbOnline: false, lastDbWriteAt: null },
+  monthlyGrowth: [],
+};
 
 const ReportsAnalytics: React.FC = () => {
+  const [stats, setStats] = useState<AdminDashboardStats>(ZERO_POINT_STATE);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchStats = useCallback(async () => {
+    try {
+      const res = await adminApi.getDashboardStats();
+      if (res.success && res.data) {
+        setStats(res.data);
+        setError(null);
+      } else {
+        setError(res?.message || 'Failed to load analytics');
+      }
+    } catch (e: any) {
+      setError(e?.message || 'Failed to load analytics');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchStats();
+  }, [fetchStats]);
+
+  // Real-time: backend emits `dashboard:update` over Socket.IO whenever a
+  // worker/business registers, a business funds escrow, or a payout settles.
+  // Single source of truth — refetch instead of trusting a local copy.
+  useEffect(() => {
+    const socket = getSocket();
+    const onDashboardUpdate = () => fetchStats();
+    socket.on('dashboard:update', onDashboardUpdate);
+    return () => {
+      socket.off('dashboard:update', onDashboardUpdate);
+    };
+  }, [fetchStats]);
+
+  const growth = stats.monthlyGrowth.filter((b) => b.workers > 0 || b.businesses > 0);
+  const isZeroState =
+    stats.totalGmv === 0 &&
+    stats.payoutsSettled === 0 &&
+    stats.activeWorkersCount === 0 &&
+    stats.activeBusinessesCount === 0;
+
   return (
     <div className="space-y-8">
       <div>
         <h1 className="text-2xl font-extrabold text-white">Platform System Analytics</h1>
-        <p className="text-xs text-slate-400">Recharts reporting on marketplace registration growth curves.</p>
+        <p className="text-xs text-slate-400">
+          Live registration growth reported from the database — zero fabricated figures.
+        </p>
       </div>
 
+      {/* Real registration growth (Workers vs Businesses, month over month) */}
       <div className="p-6 rounded-3xl glass-panel border border-slate-800 space-y-4">
         <h3 className="text-sm font-bold text-white flex items-center gap-2">
           <Users className="w-4 h-4 text-brand-accent" /> Active User Registration Growth (Workers vs Businesses)
         </h3>
-        <div className="h-72 w-full">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={analyticsData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-              <XAxis dataKey="month" stroke="#94a3b8" fontSize={11} />
-              <YAxis stroke="#94a3b8" fontSize={11} />
-              <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '12px', fontSize: '12px' }} />
-              <Bar dataKey="workers" fill="#10b981" radius={[6, 6, 0, 0]} name="Workers" />
-              <Bar dataKey="businesses" fill="#6366f1" radius={[6, 6, 0, 0]} name="Businesses" />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
+        {loading ? (
+          <p className="text-xs text-slate-400">Loading registration growth…</p>
+        ) : isZeroState && growth.length === 0 ? (
+          <p className="text-xs text-slate-400">
+            Zero-state: no workers or businesses have registered yet. The chart stays
+            empty (a clean $0 / 0 platform) until the first real registration lands —
+            then it appears here in real time via Socket.IO.
+          </p>
+        ) : (
+          <div className="h-64 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={growth}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                <XAxis dataKey="month" stroke="#94a3b8" fontSize={11} />
+                <YAxis stroke="#94a3b8" fontSize={11} />
+                <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '12px', fontSize: '12px' }} />
+                <Bar dataKey="workers" fill="#10b981" radius={[6, 6, 0, 0]} name="Workers" />
+                <Bar dataKey="businesses" fill="#6366f1" radius={[6, 6, 0, 0]} name="Businesses" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+      </div>
+
+      {/* Platform ops health signal — real, never fabricated */}
+      <div className="p-6 rounded-3xl glass-panel border border-slate-800 space-y-2">
+        <h3 className="text-sm font-bold text-white flex items-center gap-2">
+          <TrendingUp className="w-4 h-4 text-purple-400" /> Platform Operations
+        </h3>
+        <p className="text-xs text-slate-400 flex items-center gap-1.5">
+          <Activity className="w-3.5 h-3.5 text-emerald-400" />
+          {stats.platformHealth?.lastDbWriteAt
+            ? `Last successful platform DB write: ${new Date(stats.platformHealth.lastDbWriteAt).toLocaleString()}.`
+            : 'No platform writes yet — a fresh, empty platform.'}
+        </p>
       </div>
     </div>
   );

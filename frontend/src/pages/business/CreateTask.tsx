@@ -8,6 +8,8 @@ import { useWatch } from 'react-hook-form';
 import { tasksApi } from '../../api/tasks';
 import { useToast } from '../../context/ToastContext';
 import { formatCurrency } from '../../lib/utils';
+import { Field, InputControl, SelectControl, TextareaControl } from '../../components/ui/Field';
+import Button from '../../components/ui/Button';
 
 const createTaskSchema = z.object({
   title: z.string().min(5, 'Title must be at least 5 characters'),
@@ -84,39 +86,33 @@ const CreateTask: React.FC = () => {
 
       <div className="p-8 rounded-3xl bg-white border border-slate-200 shadow-sm space-y-6">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-          <div>
-            <label className="block text-xs font-bold text-slate-800 mb-1.5">Task Title</label>
-            <input
-              type="text"
+          <Field label="Task Title" required error={errors.title?.message}>
+            <InputControl
               {...register('title')}
               placeholder="e.g. UX Feedback & Usability Review for Mobile App"
-              className="w-full glass-input text-xs text-slate-900 placeholder:text-slate-400 bg-white border border-slate-300"
+              className="bg-white border border-slate-300"
             />
-            {errors.title && <p className="text-[10px] text-rose-500 mt-1">{errors.title.message}</p>}
-          </div>
+          </Field>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-bold text-slate-800 mb-1.5">Category</label>
-              <select {...register('category')} className="w-full glass-input text-xs text-slate-900 bg-white border border-slate-300">
+            <Field label="Category" required error={errors.category?.message}>
+              <SelectControl {...register('category')} className="bg-white border border-slate-300">
                 <option value="AI & Data Annotation">AI & Data Annotation</option>
                 <option value="UX Research">UX Research</option>
                 <option value="Translation & Localization">Translation & Localization</option>
                 <option value="Software Engineering">Software Engineering</option>
                 <option value="Lead Generation">Lead Generation</option>
-              </select>
-              {errors.category && <p className="text-[10px] text-rose-500 mt-1">{errors.category.message}</p>}
-            </div>
+              </SelectControl>
+            </Field>
 
-            <div>
-              <label className="block text-xs font-bold text-slate-800 mb-1.5">Difficulty Level</label>
-              <select {...register('difficulty')} className="w-full glass-input text-xs text-slate-900 bg-white border border-slate-300">
+            <Field label="Difficulty Level">
+              <SelectControl {...register('difficulty')} className="bg-white border border-slate-300">
                 <option value="BEGINNER">Beginner</option>
                 <option value="INTERMEDIATE">Intermediate</option>
                 <option value="ADVANCED">Advanced</option>
                 <option value="EXPERT">Expert</option>
-              </select>
-            </div>
+              </SelectControl>
+            </Field>
           </div>
 
           {/* Currency selection & reward fields */}
@@ -160,12 +156,13 @@ const CreateTask: React.FC = () => {
                   ) : (
                     <DollarSign className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none z-10" />
                   )}
-                  <input
+                  <InputControl
                     type="number"
                     step={watchCurrency === 'INR' ? '1' : '0.50'}
                     {...register('reward', { valueAsNumber: true })}
                     placeholder={watchCurrency === 'INR' ? '500' : '25.00'}
-                    className="w-full glass-input !pl-11 !pr-4 text-xs text-slate-900 font-bold bg-white border-slate-300 placeholder:text-slate-400"
+                    className="!pl-11 !pr-4 bg-white border-slate-300 font-bold"
+                    style={{ paddingLeft: '2.75rem' }}
                   />
                 </div>
                 {errors.reward && <p className="text-[10px] text-rose-500 mt-1">{errors.reward.message}</p>}
@@ -175,72 +172,61 @@ const CreateTask: React.FC = () => {
                 <label className="block text-slate-800 font-bold text-xs mb-1.5">Worker Seat Limit</label>
                 <div className="relative">
                   <Users className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none z-10" />
-                  <input
+                  <InputControl
                     type="number"
                     {...register('workerLimit', { valueAsNumber: true })}
                     placeholder="10"
-                    className="w-full glass-input !pl-11 !pr-4 text-xs text-slate-900 bg-white border-slate-300 placeholder:text-slate-400"
+                    className="!pl-11 !pr-4 bg-white border-slate-300"
+                    style={{ paddingLeft: '2.75rem' }}
                   />
                 </div>
                 {errors.workerLimit && <p className="text-[10px] text-rose-500 mt-1">{errors.workerLimit.message}</p>}
               </div>
 
-              <div>
-                <label className="block text-slate-800 font-bold text-xs mb-1.5">Deadline Date</label>
-                <input
+              <Field label="Deadline Date" required error={errors.deadline?.message}>
+                <InputControl
                   type="date"
                   {...register('deadline')}
-                  className="w-full glass-input text-xs text-slate-900 bg-white border-slate-300"
+                  className="bg-white border border-slate-300"
                 />
-                {errors.deadline && <p className="text-[10px] text-rose-500 mt-1">{errors.deadline.message}</p>}
-              </div>
+              </Field>
             </div>
           </div>
 
-          <div>
-            <label className="block text-xs font-bold text-slate-800 mb-1.5">Overview Description</label>
-            <textarea
+          <Field label="Overview Description" required error={errors.description?.message}>
+            <TextareaControl
               rows={2}
               {...register('description')}
               placeholder="High level overview of what workers will execute..."
-              className="w-full glass-input text-xs text-slate-900 placeholder:text-slate-400 bg-white border border-slate-300"
+              className="bg-white border border-slate-300"
             />
-            {errors.description && <p className="text-[10px] text-rose-500 mt-1">{errors.description.message}</p>}
-          </div>
+          </Field>
 
-          <div>
-            <label className="block text-xs font-bold text-slate-800 mb-1.5">Detailed Step-by-Step Instructions</label>
-            <textarea
+          <Field label="Detailed Step-by-Step Instructions" required error={errors.instructions?.message}>
+            <TextareaControl
               rows={4}
               {...register('instructions')}
-              placeholder="1. Access portal link...&#10;2. Complete test case...&#10;3. Export deliverable..."
-              className="w-full glass-input text-xs text-slate-900 placeholder:text-slate-400 bg-white border border-slate-300"
+              placeholder={'1. Access portal link...\n2. Complete test case...\n3. Export deliverable...'}
+              className="bg-white border border-slate-300"
             />
-            {errors.instructions && <p className="text-[10px] text-rose-500 mt-1">{errors.instructions.message}</p>}
-          </div>
+          </Field>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-bold text-slate-800 mb-1.5">Required Skills (Comma-separated)</label>
-              <input
-                type="text"
+            <Field label="Required Skills (Comma-separated)" required error={errors.requiredSkills?.message}>
+              <InputControl
                 {...register('requiredSkills')}
                 placeholder="Python, Loom, React"
-                className="w-full glass-input text-xs text-slate-900 placeholder:text-slate-400 bg-white border border-slate-300"
+                className="bg-white border border-slate-300"
               />
-              {errors.requiredSkills && <p className="text-[10px] text-rose-500 mt-1">{errors.requiredSkills.message}</p>}
-            </div>
+            </Field>
 
-            <div>
-              <label className="block text-xs font-bold text-slate-800 mb-1.5">Proof Requirements Format</label>
-              <input
-                type="text"
+            <Field label="Proof Requirements Format" required error={errors.proofRequirements?.message}>
+              <InputControl
                 {...register('proofRequirements')}
                 placeholder="Loom URL link or Markdown text summary"
-                className="w-full glass-input text-xs text-slate-900 placeholder:text-slate-400 bg-white border border-slate-300"
+                className="bg-white border border-slate-300"
               />
-              {errors.proofRequirements && <p className="text-[10px] text-rose-500 mt-1">{errors.proofRequirements.message}</p>}
-            </div>
+            </Field>
           </div>
 
           <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between text-xs">
@@ -250,13 +236,14 @@ const CreateTask: React.FC = () => {
             <span className="text-base font-extrabold text-emerald-700">{formatCurrency(totalAllocatedReward, watchCurrency)}</span>
           </div>
 
-          <button
+          <Button
             type="submit"
             disabled={isSubmitting}
-            className="w-full py-3.5 rounded-xl bg-gradient-to-r from-brand-600 via-indigo-600 to-brand-accent text-white font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2 hover:opacity-95"
+            size="lg"
+            className="w-full"
           >
             {isSubmitting ? 'Posting Task Batch...' : 'Create & Publish Task Batch'} <PlusCircle className="w-4 h-4" />
-          </button>
+          </Button>
         </form>
       </div>
     </div>

@@ -14,7 +14,7 @@ const Payments: React.FC = () => {
     const fetchPayments = async () => {
       setIsLoading(true);
       try {
-        const res = await tasksApi.getTasks();
+        const res = await tasksApi.getMyTasks();
         if (res.success && res.data) {
           setTasks(res.data);
         } else {

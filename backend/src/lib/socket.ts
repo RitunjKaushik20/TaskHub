@@ -66,3 +66,12 @@ export const initSocketIO = (server: HttpServer, allowedOrigins: string[]): Sock
 };
 
 export const getIO = (): SocketIOServer | null => io;
+
+// Real-time push for the SuperAdmin dashboard. Emitted whenever a live
+// platform event affects a stat card: escrow funded, payout settled, or a new
+// user (worker/business/admin) registered. The admin Overview subscribes and
+// refetches aggregated stats instead of trusting stale client-side mocks.
+export const emitDashboardUpdate = (): void => {
+  if (!io) return;
+  io.emit('dashboard:update');
+};

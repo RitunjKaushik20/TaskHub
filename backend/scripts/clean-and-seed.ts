@@ -70,6 +70,15 @@ async function cleanAndSeed() {
       passwordHash,
       role: 'BUSINESS',
       companyName: 'CyberNet AI Labs',
+      // Demo business accounts behave like pre-existing accounts: approved.
+      approvalStatus: 'APPROVED',
+      companyProfile: {
+        companyName: 'CyberNet AI Labs',
+        industryType: 'SaaS',
+        websiteUrl: 'https://cybernet.ai',
+        companySize: '51-200',
+        servicesNeeded: ['AI Data Labeling', 'Content Moderation', 'UX Feedback'],
+      },
       avatarUrl: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150&auto=format&fit=crop&q=80',
       kycStatus: 'VERIFIED',
       status: 'ACTIVE',

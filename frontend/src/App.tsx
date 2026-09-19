@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
 import ProtectedRoute from './components/auth/ProtectedRoute';
+import ApprovedBusinessRoute from './components/common/ApprovedBusinessRoute';
 
 // Layouts
 import PublicLayout from './components/layout/PublicLayout';
@@ -18,6 +19,7 @@ import About from './pages/public/About';
 import FAQ from './pages/public/FAQ';
 import Login from './pages/public/Login';
 import Register from './pages/public/Register';
+import VerifyEmail from './pages/public/VerifyEmail';
 import Forbidden from './pages/public/Forbidden';
 import NotFound from './pages/public/NotFound';
 import PublicTaskDetail from './pages/public/TaskDetail';
@@ -43,6 +45,7 @@ import BusinessProfile from './pages/business/Profile';
 // Admin Pages
 import AdminOverview from './pages/admin/Overview';
 import AdminUserManagement from './pages/admin/UserManagement';
+import AdminBusinessApprovals from './pages/admin/BusinessApprovals';
 import AdminTaskOversight from './pages/admin/TaskOversight';
 import AdminSubmissionOversight from './pages/admin/SubmissionOversight';
 import AdminVerificationQueue from './pages/admin/VerificationQueue';
@@ -67,6 +70,7 @@ const App: React.FC = () => {
               <Route path="/faq" element={<FAQ />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
+              <Route path="/verify-email" element={<VerifyEmail />} />
               <Route path="/tasks/:id" element={<PublicTaskDetail />} />
               <Route path="/403" element={<Forbidden />} />
               <Route path="*" element={<NotFound />} />
@@ -98,7 +102,11 @@ const App: React.FC = () => {
             >
               <Route index element={<BusinessOverview />} />
               <Route path="tasks" element={<BusinessTaskList />} />
-              <Route path="tasks/create" element={<BusinessCreateTask />} />
+              <Route path="tasks/create" element={
+                <ApprovedBusinessRoute>
+                  <BusinessCreateTask />
+                </ApprovedBusinessRoute>
+              } />
               <Route path="tasks/:id" element={<BusinessTaskDetail />} />
               <Route path="tasks/:id/chat" element={<BusinessTaskChat />} />
               <Route path="submissions" element={<BusinessSubmissionsReview />} />
@@ -116,6 +124,7 @@ const App: React.FC = () => {
             >
               <Route index element={<AdminOverview />} />
               <Route path="users" element={<AdminUserManagement />} />
+              <Route path="business-approvals" element={<AdminBusinessApprovals />} />
               <Route path="tasks" element={<AdminTaskOversight />} />
               <Route path="submissions" element={<AdminSubmissionOversight />} />
               <Route path="verification" element={<AdminVerificationQueue />} />

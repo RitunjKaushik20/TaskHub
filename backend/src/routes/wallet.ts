@@ -2,12 +2,14 @@ import { Router, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { sendSuccess, sendError } from '../utils/response';
 import { requireAuth, AuthenticatedRequest } from '../middleware/auth';
+import { requireEmailVerified } from '../middleware/emailVerified';
 
 const router = Router();
 const prisma = new PrismaClient();
 
 // GET /api/wallet or /api/wallet/summary
-router.get(['/', '/summary'], requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+// Part B: wallet access requires a verified email.
+router.get(['/', '/summary'], requireAuth, requireEmailVerified, async (req: AuthenticatedRequest, res: Response) => {
   try {
     let wallet = await prisma.wallet.findUnique({ where: { userId: req.user!.userId } });
     if (!wallet) {
@@ -34,7 +36,8 @@ router.get(['/', '/summary'], requireAuth, async (req: AuthenticatedRequest, res
 });
 
 // GET /api/wallet/transactions
-router.get('/transactions', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+// Part B: transaction ledger access requires a verified email.
+router.get('/transactions', requireAuth, requireEmailVerified, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const wallet = await prisma.wallet.findUnique({ where: { userId: req.user!.userId } });
     if (!wallet) {

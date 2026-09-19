@@ -2,13 +2,17 @@ import { Router, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { sendSuccess, sendError } from '../utils/response';
 import { requireAuth, AuthenticatedRequest } from '../middleware/auth';
+import { requireChatTaskAccess } from '../middleware/taskOwnership';
+import { requireEmailVerified } from '../middleware/emailVerified';
 import { getIO } from '../lib/socket';
 
 const router = Router();
 const prisma = new PrismaClient();
 
 // GET /api/chat/tasks/:taskId
-router.get('/tasks/:taskId', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+// Part A (data isolation): business accounts may only read chat rooms for their
+// own task batches.
+router.get('/tasks/:taskId', requireAuth, requireChatTaskAccess, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { taskId } = req.params;
     const messages = await prisma.chatMessage.findMany({
@@ -23,7 +27,9 @@ router.get('/tasks/:taskId', requireAuth, async (req: AuthenticatedRequest, res:
 });
 
 // POST /api/chat/tasks/:taskId
-router.post('/tasks/:taskId', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+// Part A (data isolation): business accounts may only post in chat rooms for
+// their own task batches. Part B: posting requires a verified email.
+router.post('/tasks/:taskId', requireAuth, requireChatTaskAccess, requireEmailVerified, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { taskId } = req.params;
     const { message, fileUrl, fileName } = req.body;

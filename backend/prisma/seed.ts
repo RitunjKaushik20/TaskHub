@@ -11,13 +11,14 @@ async function main() {
   // 1. Create Demo Users
   const worker = await prisma.user.upsert({
     where: { email: 'alex.vance@worker.taskhub.io' },
-    update: {},
+    update: { emailVerified: true },
     create: {
       id: 'usr_w101',
       name: 'Alex Vance',
       email: 'alex.vance@worker.taskhub.io',
       passwordHash,
       role: 'WORKER',
+      emailVerified: true,
       avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
       kycStatus: 'VERIFIED',
       status: 'ACTIVE',
@@ -54,14 +55,24 @@ async function main() {
 
   const business = await prisma.user.upsert({
     where: { email: 'elena@cybernet.ai' },
-    update: {},
+    update: { emailVerified: true },
     create: {
       id: 'usr_b202',
       name: 'Elena Rostova',
       email: 'elena@cybernet.ai',
       passwordHash,
       role: 'BUSINESS',
+      emailVerified: true,
       companyName: 'CyberNet AI Labs',
+      // Demo business accounts behave like pre-existing accounts: approved.
+      approvalStatus: 'APPROVED',
+      companyProfile: {
+        companyName: 'CyberNet AI Labs',
+        industryType: 'SaaS',
+        websiteUrl: 'https://cybernet.ai',
+        companySize: '51-200',
+        servicesNeeded: ['AI Data Labeling', 'Content Moderation', 'UX Feedback'],
+      },
       avatarUrl: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150&auto=format&fit=crop&q=80',
       kycStatus: 'VERIFIED',
       status: 'ACTIVE',
@@ -78,13 +89,14 @@ async function main() {
 
   const admin = await prisma.user.upsert({
     where: { email: 'marcus@admin.taskhub.io' },
-    update: {},
+    update: { emailVerified: true },
     create: {
       id: 'usr_a303',
       name: 'Marcus Vance (SuperAdmin)',
       email: 'marcus@admin.taskhub.io',
       passwordHash,
       role: 'ADMIN',
+      emailVerified: true,
       avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
       kycStatus: 'VERIFIED',
       status: 'ACTIVE',

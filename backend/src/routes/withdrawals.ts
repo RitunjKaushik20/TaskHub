@@ -2,12 +2,14 @@ import { Router, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { sendSuccess, sendError } from '../utils/response';
 import { requireAuth, requireRoles, AuthenticatedRequest } from '../middleware/auth';
+import { requireEmailVerified } from '../middleware/emailVerified';
 
 const router = Router();
 const prisma = new PrismaClient();
 
 // POST /api/withdrawals
-router.post('/', requireAuth, requireRoles(['WORKER', 'ADMIN']), async (req: AuthenticatedRequest, res: Response) => {
+// Part B: withdrawing earnings requires a verified email.
+router.post('/', requireAuth, requireRoles(['WORKER', 'ADMIN']), requireEmailVerified, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { amount, method, accountDetails } = req.body;
     const worker = await prisma.user.findUnique({ where: { id: req.user!.userId } });

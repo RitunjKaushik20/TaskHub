@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { PlusCircle, CreditCard, ListTodo, CheckCircle2, Users, Check } from 'lucide-react';
+import { PlusCircle, CreditCard, ListTodo, CheckCircle2, Users, Check, Lock } from 'lucide-react';
 import StatCard from '../../components/common/StatCard';
+import ApprovalBanner from '../../components/common/ApprovalBanner';
 import { tasksApi } from '../../api/tasks';
 import { submissionsApi } from '../../api/submissions';
 import { useAuth } from '../../context/AuthContext';
@@ -17,7 +18,7 @@ const Overview: React.FC = () => {
     const loadData = async () => {
       try {
         const [tasksRes, subsRes] = await Promise.all([
-          tasksApi.getTasks(),
+          tasksApi.getMyTasks(),
           submissionsApi.getSubmissions(),
         ]);
         if (tasksRes.success && tasksRes.data) {
@@ -37,9 +38,43 @@ const Overview: React.FC = () => {
   const approvedSubmissions = submissions.filter((s) => s.status === 'APPROVED');
   const totalRewardCommitted = tasks.reduce((sum, t) => sum + (t.reward * t.workerLimit), 0);
   const companyName = user?.companyName || user?.name || 'CyberNet AI Labs';
+  const isApproved = user?.approvalStatus === 'APPROVED';
+
+  const approvalButton =
+    isApproved ? (
+      <Link
+        to="/business/tasks/create"
+        className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-brand-600 to-indigo-600 text-white font-bold text-xs shadow-md transition-all hover:opacity-95 flex items-center gap-2"
+      >
+        <PlusCircle className="w-4 h-4" /> Post New Task Batch
+      </Link>
+    ) : (
+      <div
+        className="group relative inline-flex"
+        aria-label="Task publishing requires an approved business account"
+      >
+        <button
+          type="button"
+          disabled
+          className="px-5 py-2.5 rounded-xl bg-slate-300 text-slate-600 font-bold text-xs shadow-sm flex items-center gap-2 cursor-not-allowed"
+        >
+          <Lock className="w-4 h-4" /> Post New Task Batch
+        </button>
+        <span className="pointer-events-none absolute right-0 top-full mt-2 w-64 hidden group-hover:block rounded-xl bg-slate-900 text-slate-100 text-[11px] font-medium p-3 shadow-xl z-20">
+          {user?.approvalStatus === 'REJECTED'
+            ? 'This account was rejected. Contact support to reactivate task publishing.'
+            : user?.approvalStatus === 'SUSPENDED'
+            ? 'This account is suspended. Task publishing is disabled.'
+            : 'Task publishing unlocks once a TaskHub admin approves your business account.'}
+        </span>
+      </div>
+    );
 
   return (
     <div className="space-y-8">
+      {/* Feature 2: Super Admin Approval Gate — status banner for unapproved businesses */}
+      <ApprovalBanner status={user?.approvalStatus} />
+
       {/* Welcome Header */}
       <div className="p-6 rounded-3xl bg-gradient-to-r from-indigo-50/80 via-white to-slate-50 border border-indigo-200 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
@@ -51,12 +86,7 @@ const Overview: React.FC = () => {
           </p>
         </div>
 
-        <Link
-          to="/business/tasks/create"
-          className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-brand-600 to-indigo-600 text-white font-bold text-xs shadow-md transition-all hover:opacity-95 flex items-center gap-2"
-        >
-          <PlusCircle className="w-4 h-4" /> Post New Task Batch
-        </Link>
+        {approvalButton}
       </div>
 
       {/* Metrics */}

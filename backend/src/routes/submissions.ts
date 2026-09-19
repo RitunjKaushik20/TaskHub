@@ -2,13 +2,16 @@ import { Router, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { sendSuccess, sendError } from '../utils/response';
 import { requireAuth, requireRoles, AuthenticatedRequest } from '../middleware/auth';
-import { getIO } from '../lib/socket';
+import { requireBusinessSubmissionOwner } from '../middleware/taskOwnership';
+import { requireEmailVerified } from '../middleware/emailVerified';
+import { getIO, emitDashboardUpdate } from '../lib/socket';
 
 const router = Router();
 const prisma = new PrismaClient();
 
 // POST /api/submissions
-router.post('/', requireAuth, requireRoles(['WORKER', 'ADMIN']), async (req: AuthenticatedRequest, res: Response) => {
+// Part B: submitting proof requires a verified email.
+router.post('/', requireAuth, requireRoles(['WORKER', 'ADMIN']), requireEmailVerified, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { taskId, proofType, proofContent, fileUrl, linkUrl } = req.body;
 
@@ -53,9 +56,24 @@ router.post('/', requireAuth, requireRoles(['WORKER', 'ADMIN']), async (req: Aut
 });
 
 // GET /api/submissions
+// Part A (data isolation): results are scoped to the calling account so a
+// business only ever sees submissions for ITS OWN task batches, a worker only
+// their own work, and admins see everything. 404/403 on foreign resources.
 router.get('/', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
   try {
+    const role = req.user!.role;
+    let where: any = {};
+
+    if (role === 'BUSINESS') {
+      where.task = { businessId: req.user!.userId };
+    } else if (role === 'WORKER') {
+      where.workerId = req.user!.userId;
+    } else if (role !== 'ADMIN') {
+      return sendError(res, 'Forbidden. You do not have permission to view submissions.', undefined, 403);
+    }
+
     const submissions = await prisma.submission.findMany({
+      where,
       include: {
         task: { select: { title: true } },
         worker: { select: { name: true } },
@@ -76,7 +94,10 @@ router.get('/', requireAuth, async (req: AuthenticatedRequest, res: Response) =>
 });
 
 // POST /api/submissions/:id/review
-router.post('/:id/review', requireAuth, requireRoles(['BUSINESS', 'ADMIN']), async (req: AuthenticatedRequest, res: Response) => {
+// Part A (data isolation): the reviewing account must own the task batch the
+// submission belongs to (ADMIN bypass). Direct calls on a foreign submission
+// return 403.
+router.post('/:id/review', requireAuth, requireRoles(['BUSINESS', 'ADMIN']), requireBusinessSubmissionOwner, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { id } = req.params;
     const { status, qualityScore, feedback, rejectionReason } = req.body;
@@ -140,6 +161,10 @@ router.post('/:id/review', requireAuth, requireRoles(['BUSINESS', 'ADMIN']), asy
 
     const io = getIO();
     if (io) {
+      // Part B: a TASK_PAYOUT was released -> Live SuperAdmin dashboard figures
+      // (escrow GMV + payouts settled) moved. Push a Socket.IO event so the open
+      // Overview page re-reads `/admin/dashboard-stats` in real time.
+      emitDashboardUpdate();
       io.emit('submission-updated', {
         id: updated.id,
         taskId: updated.taskId,

@@ -7,6 +7,13 @@ export interface RegisterPayload {
   password: string;
   role: 'WORKER' | 'BUSINESS';
   companyName?: string;
+  companyProfile?: {
+    companyName: string;
+    industryType: string;
+    websiteUrl?: string | null;
+    companySize: string;
+    servicesNeeded: string[];
+  };
 }
 
 export interface LoginPayload {
@@ -21,6 +28,15 @@ export const authApi = {
 
   login: async (payload: LoginPayload): Promise<ApiResponse<User>> => {
     return apiRequest(() => api.post('/auth/login', payload));
+  },
+
+  // Part B: OTP email verification.
+  sendOtp: async (email: string): Promise<ApiResponse<{ sent: boolean; emailVerified: boolean; mode?: string }>> => {
+    return apiRequest(() => api.post('/auth/otp/send', { email }));
+  },
+
+  verifyOtp: async (payload: { email: string; code: string }): Promise<ApiResponse<User>> => {
+    return apiRequest(() => api.post('/auth/otp/verify', payload));
   },
 
   logout: async (): Promise<ApiResponse<null>> => {
@@ -45,6 +61,13 @@ export const authApi = {
     bio?: string;
     skills?: string;
     avatarUrl?: string;
+    companyProfile?: {
+      companyName: string;
+      industryType: string;
+      websiteUrl?: string | null;
+      companySize: string;
+      servicesNeeded: string[];
+    };
   }): Promise<ApiResponse<User>> => {
     return apiRequest(() => api.put('/auth/profile', payload));
   },
