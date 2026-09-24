@@ -51,8 +51,15 @@ export const authApi = {
     return apiRequest(() => api.get('/auth/me'));
   },
 
-  googleVerify: async (payload: { email?: string; name?: string; credential?: string; role?: string }): Promise<ApiResponse<User>> => {
+  // Server-verified Google sign-in: sends the Google ID token produced by the
+  // Google Identity Services button; the backend validates it against Google
+  // before creating/authenticating any account.
+  googleVerify: async (payload: { credential: string; role?: string }): Promise<ApiResponse<User>> => {
     return apiRequest(() => api.post('/auth/google/verify', payload));
+  },
+
+  googleConfig: async (): Promise<ApiResponse<{ clientId: string }>> => {
+    return apiRequest(() => api.get('/auth/google/config'));
   },
 
   updateProfile: async (payload: {

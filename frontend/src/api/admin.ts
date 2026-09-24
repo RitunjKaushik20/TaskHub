@@ -1,7 +1,6 @@
 import { api, apiRequest } from '../lib/api';
 import type {
   UserManagementItem,
-  WithdrawalRequest,
   AuditLog,
   ApiResponse,
   Task,
@@ -36,24 +35,6 @@ export const adminApi = {
   },
   getSubmissions: async (): Promise<ApiResponse<Submission[]>> => {
     return apiRequest(() => api.get('/admin/submissions'));
-  },
-
-  getVerificationQueue: async (): Promise<ApiResponse<UserManagementItem[]>> => {
-    return apiRequest(() => api.get('/admin/verification'));
-  },
-
-  getWithdrawalQueue: async (): Promise<ApiResponse<WithdrawalRequest[]>> => {
-    return apiRequest(() => api.get('/admin/withdrawals'));
-  },
-  getWithdrawals: async (): Promise<ApiResponse<WithdrawalRequest[]>> => {
-    return apiRequest(() => api.get('/admin/withdrawals'));
-  },
-
-  processWithdrawal: async (
-    withdrawalId: string,
-    action: 'APPROVE' | 'REJECT'
-  ): Promise<ApiResponse<WithdrawalRequest>> => {
-    return apiRequest(() => api.post(`/admin/withdrawals/${withdrawalId}/process`, { action }));
   },
 
   getAuditLogs: async (): Promise<ApiResponse<AuditLog[]>> => {

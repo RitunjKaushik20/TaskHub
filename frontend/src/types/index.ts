@@ -33,6 +33,8 @@ export interface User {
   skills?: string;
   avatarUrl?: string;
   kycVerified?: boolean;
+  emailVerified?: boolean;
+  pendingEmailVerification?: boolean;
   createdAt: string;
 }
 
@@ -74,6 +76,8 @@ export interface Task {
 
 export type SubmissionStatus = 'PENDING' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED';
 
+export type PaymentStatus = 'PENDING' | 'MARKED_PAID';
+
 export interface Submission {
   id: string;
   taskId: string;
@@ -91,6 +95,10 @@ export interface Submission {
   rewardAmount: number;
   submittedAt: string;
   reviewedAt?: string;
+  paymentStatus?: PaymentStatus;
+  markedPaidAt?: string;
+  markedPaidBy?: string;
+  alreadyPaid?: boolean;
 }
 
 export interface ChatMessage {
@@ -111,6 +119,8 @@ export interface WalletSummary {
   pendingBalance: number;
   totalEarned: number;
   totalWithdrawn: number;
+  totalSpending: number;
+  pendingPayout: number;
 }
 
 export type TransactionType = 'TASK_PAYOUT' | 'WITHDRAWAL' | 'TASK_REWARD' | 'REFUND';

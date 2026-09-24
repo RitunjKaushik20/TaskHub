@@ -1,11 +1,13 @@
+// Load environment FIRST — before any other import, so every module (jwt,
+// socket, routes) reads real secrets/config instead of builtin fallbacks.
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
-import dotenv from 'dotenv';
 import dns from 'dns';
 
 dns.setDefaultResultOrder('ipv4first');
-dotenv.config();
 
 import http from 'http';
 import path from 'path';
@@ -14,13 +16,11 @@ import taskRoutes from './routes/tasks';
 import submissionRoutes from './routes/submissions';
 import chatRoutes from './routes/chat';
 import walletRoutes from './routes/wallet';
-import withdrawalRoutes from './routes/withdrawals';
 import adminRoutes from './routes/admin';
-import paymentRoutes from './routes/payments';
 import uploadRoutes from './routes/uploads';
 import { errorHandler } from './middleware/errorHandler';
 import { initSocketIO } from './lib/socket';
-import { isDisposableEmail } from './config/disposableEmails';
+import { verifyGoogleIdToken } from './lib/googleAuth';
 
 const app = express();
 const server = http.createServer(app);
@@ -29,13 +29,20 @@ const rawFrontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
 const FRONTEND_URL = rawFrontendUrl.trim().replace(/\/+$/, '');
 const allowedOrigins = [FRONTEND_URL, 'http://localhost:5173', 'http://127.0.0.1:5173'];
 
-// Dynamic CORS configuration allowing Vercel, localhost, and custom frontend domains with credentials
+// Basic security headers (X-Frame-Options, no-sniff, etc.). CSP is intentionally
+// left unset because this is a pure JSON API; the React SPA is served separately.
+app.use(helmet({ contentSecurityPolicy: false }));
+
+// Dynamic CORS configuration allowing Vercel, localhost, and custom frontend
+// domains with credentials. Origins are strictly allowlisted — any request with
+// an Origin header outside the allowlist is rejected (never reflected).
 app.use(
   cors({
     origin: (origin, callback) => {
       // Allow requests with no origin (e.g. mobile apps, curl, server-to-server)
       if (!origin) return callback(null, true);
-      return callback(null, true);
+      if (allowedOrigins.includes(origin)) return callback(null, true);
+      return callback(new Error('Not allowed by CORS'));
     },
     credentials: true,
   })
@@ -75,48 +82,46 @@ app.use('/chat', chatRoutes);
 app.use('/api/wallet', walletRoutes);
 app.use('/wallet', walletRoutes);
 
-app.use('/api/withdrawals', withdrawalRoutes);
-app.use('/withdrawals', withdrawalRoutes);
-
 app.use('/api/admin', adminRoutes);
 app.use('/admin', adminRoutes);
-
-app.use('/api/payments', paymentRoutes);
-app.use('/payments', paymentRoutes);
 
 app.use('/api/uploads', uploadRoutes);
 
 import { PrismaClient } from '@prisma/client';
 import { signAccessToken, signRefreshToken, setAuthCookies } from './utils/jwt';
+import { sendVerificationOtp } from './routes/auth';
 
 const prisma = new PrismaClient();
 
 import bcrypt from 'bcryptjs';
 
-// Direct Google OAuth handler matching both GET /api/google/connect and /google/connect
+// Direct Google OAuth redirect handler matching both GET /api/google/connect and
+// /google/connect. This is the callback target for the Google Identity Services
+// "sign in with Google" redirect from a real Google OAuth authorization code.
+//
+// SECURITY: this handler never trusts email/email_verified query parameters
+// (those are fully attacker-controllable). It only proceeds when a real Google
+// ID token is present in the `credential` query param, and that token is
+// verified server-side via Google's tokeninfo endpoint (signature, issuer,
+// audience, expiry) before any account is looked up or created.
 const googleConnectHandler = async (req: express.Request, res: express.Response) => {
-  const email = req.query.email as string;
-  const name = req.query.name as string;
+  const credential = req.query.credential as string;
   const requestedRole = req.query.role as string;
-  const avatar = req.query.avatarUrl as string;
-  const emailVerifiedFlag = req.query.email_verified as string;
 
-  // If no email provided, redirect to frontend to open the Google Account Chooser
-  if (!email || !email.includes('@')) {
+  // If no credential provided, redirect to the frontend which opens the Google
+  // Account Chooser (client-side GIS flow) and never issues a session.
+  if (!credential || typeof credential !== 'string') {
     return res.redirect(`${FRONTEND_URL}/login?prompt_google=true`);
   }
 
-  const cleanEmail = email.toLowerCase().trim();
-
-  // Feature 3: never auto-create an account unless the Google payload has been
-  // explicitly verified AND the domain is not disposable. Both are enforced at
-  // the API layer so the gate cannot be bypassed from the browser.
-  if (isDisposableEmail(cleanEmail)) {
-    return res.redirect(`${FRONTEND_URL}/login?google_error=disposable`);
-  }
-  if (emailVerifiedFlag !== 'true') {
+  const identity = await verifyGoogleIdToken(credential);
+  if (!identity || !identity.emailVerified) {
     return res.redirect(`${FRONTEND_URL}/login?google_error=verification`);
   }
+
+  const cleanEmail = identity.email;
+  const name = identity.name;
+  const avatar = identity.picture;
 
   try {
     let user = await prisma.user.findUnique({
@@ -147,7 +152,9 @@ const googleConnectHandler = async (req: express.Request, res: express.Response)
           avatarUrl: avatar?.trim() || `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(cleanEmail)}`,
           kycStatus: 'VERIFIED',
           status: 'ACTIVE',
-          emailVerified: true,
+          // Google verified the domain, but TaskHub still owns activation: the
+          // user must verify this inbox with a TaskHub OTP before logging in.
+          emailVerified: false,
           wallet: {
             create: {
               availableBalance: 0.0,
@@ -158,6 +165,14 @@ const googleConnectHandler = async (req: express.Request, res: express.Response)
           },
         },
       });
+      await sendVerificationOtp(res, req.ip || 'unknown', { id: user.id, email: user.email });
+      return res.redirect(`${FRONTEND_URL}/verify-email?email=${encodeURIComponent(cleanEmail)}&role=${assignedRole}`);
+    }
+
+    // Existing account: full login only after TaskHub verification was completed.
+    if (user.emailVerified === false) {
+      await sendVerificationOtp(res, req.ip || 'unknown', { id: user.id, email: user.email });
+      return res.redirect(`${FRONTEND_URL}/verify-email?email=${encodeURIComponent(cleanEmail)}&role=${user.role}`);
     }
 
     const payload = { userId: user.id, email: user.email, role: user.role };

@@ -78,25 +78,25 @@ const WorkerProfile: React.FC = () => {
   return (
     <div className="space-y-8 max-w-4xl">
       <div>
-        <h1 className="text-2xl font-extrabold text-slate-900">Worker Profile & Credentials</h1>
-        <p className="text-xs text-slate-600">Manage your public worker identity, technical skill badges, and bio details.</p>
+        <h1 className="text-2xl font-extrabold text-ink-text">Worker Profile & Credentials</h1>
+        <p className="text-xs text-ink-muted">Manage your public worker identity, technical skill badges, and bio details.</p>
       </div>
 
       {/* Main Profile Card */}
-      <div className="p-6 sm:p-8 rounded-3xl bg-white border border-slate-200 shadow-sm space-y-6">
+      <div className="p-6 sm:p-8 rounded-3xl bg-paper-bg border border-hairline shadow-sm space-y-6">
         {/* Header Preview */}
-        <div className="flex flex-col sm:flex-row items-center gap-6 pb-6 border-b border-slate-200">
+        <div className="flex flex-col sm:flex-row items-center gap-6 pb-6 border-b border-hairline">
           <div className="relative group">
             <img
               src={avatarUrl || user?.avatarUrl || `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(user?.email || 'worker')}`}
               alt="Avatar"
-              className="w-24 h-24 rounded-2xl object-cover border-2 border-emerald-500/50 shadow-md bg-white"
+              className="w-24 h-24 rounded-2xl object-cover border-2 border-moss-primary/50 shadow-md bg-paper-bg"
             />
             <button
               type="button"
               onClick={handleGenerateDicebear}
               title="Generate New Avatar"
-              className="absolute -bottom-2 -right-2 p-2 rounded-xl bg-brand-600 hover:bg-brand-500 text-white shadow-lg transition-all"
+              className="absolute -bottom-2 -right-2 p-2 rounded-xl bg-moss-deep hover:bg-moss-primary text-white shadow-lg transition-all"
             >
               <Sparkles className="w-3.5 h-3.5" />
             </button>
@@ -104,21 +104,21 @@ const WorkerProfile: React.FC = () => {
 
           <div className="space-y-2 text-center sm:text-left flex-1">
             <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
-              <h2 className="text-xl font-bold text-slate-900">{name || user?.name}</h2>
-              <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold flex items-center gap-1">
+              <h2 className="text-xl font-bold text-ink-text">{name || user?.name}</h2>
+              <span className="px-2.5 py-0.5 rounded-full bg-moss-sage text-moss-deep border border-moss-sage text-[10px] font-bold flex items-center gap-1">
                 <ShieldCheck className="w-3 h-3" /> KYC Verified
               </span>
-              <span className="px-2.5 py-0.5 rounded-full bg-brand-50 text-brand-700 border border-brand-200 text-[10px] font-bold">
+              <span className="px-2.5 py-0.5 rounded-full bg-moss-sage text-moss-deep border border-moss-sage text-[10px] font-bold">
                 WORKER
               </span>
             </div>
 
-            <p className="text-xs text-slate-600 flex items-center justify-center sm:justify-start gap-1">
-              <Mail className="w-3.5 h-3.5 text-slate-400" /> {user?.email}
+            <p className="text-xs text-ink-muted flex items-center justify-center sm:justify-start gap-1">
+              <Mail className="w-3.5 h-3.5 text-ink-muted" /> {user?.email}
             </p>
 
-            <p className="text-[11px] text-slate-500 flex items-center justify-center sm:justify-start gap-1">
-              <Calendar className="w-3.5 h-3.5 text-slate-400" /> Joined TaskHub on {formatDate(user?.createdAt || new Date().toISOString())}
+            <p className="text-[11px] text-ink-muted flex items-center justify-center sm:justify-start gap-1">
+              <Calendar className="w-3.5 h-3.5 text-ink-muted" /> Joined TaskHub on {formatDate(user?.createdAt || new Date().toISOString())}
             </p>
           </div>
         </div>
@@ -128,11 +128,11 @@ const WorkerProfile: React.FC = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             {/* Full Name */}
             <div>
-              <label className="block text-xs font-bold text-slate-900 mb-1.5">
-                Full Name <span className="text-rose-500">*</span>
+              <label className="block text-xs font-bold text-ink-text mb-1.5">
+                Full Name <span className="text-moss-deep">*</span>
               </label>
               <div className="relative">
-                <UserIcon className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 z-10 pointer-events-none" />
+                <UserIcon className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted z-10 pointer-events-none" />
                 <input
                   type="text"
                   value={name}
@@ -146,16 +146,16 @@ const WorkerProfile: React.FC = () => {
 
             {/* Email Address (Read-Only) */}
             <div>
-              <label className="block text-xs font-bold text-slate-900 mb-1.5">
-                Email Address <span className="text-slate-500 text-[10px] font-normal">(Account Identifier)</span>
+              <label className="block text-xs font-bold text-ink-text mb-1.5">
+                Email Address <span className="text-ink-muted text-[10px] font-normal">(Account Identifier)</span>
               </label>
               <div className="relative">
-                <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 z-10 pointer-events-none" />
+                <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted z-10 pointer-events-none" />
                 <input
                   type="email"
                   value={user?.email || ''}
                   disabled
-                  className="w-full glass-input !pl-11 !pr-4 text-xs opacity-75 bg-slate-50 cursor-not-allowed text-slate-600 border border-slate-200"
+                  className="w-full glass-input !pl-11 !pr-4 text-xs opacity-75 bg-paper-bg cursor-not-allowed text-ink-muted border border-hairline"
                 />
               </div>
             </div>
@@ -163,7 +163,7 @@ const WorkerProfile: React.FC = () => {
 
           {/* Bio */}
           <div>
-            <label className="block text-xs font-bold text-slate-900 mb-1.5">
+            <label className="block text-xs font-bold text-ink-text mb-1.5">
               Professional Bio & Experience
             </label>
             <div className="relative">
@@ -179,11 +179,11 @@ const WorkerProfile: React.FC = () => {
 
           {/* Verified Skills */}
           <div>
-            <label className="block text-xs font-bold text-slate-900 mb-1.5">
-              Verified Technical Skills <span className="text-slate-500 text-[10px] font-normal">(Comma-separated)</span>
+            <label className="block text-xs font-bold text-ink-text mb-1.5">
+              Verified Technical Skills <span className="text-ink-muted text-[10px] font-normal">(Comma-separated)</span>
             </label>
             <div className="relative">
-              <Wrench className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 z-10 pointer-events-none" />
+              <Wrench className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted z-10 pointer-events-none" />
               <input
                 type="text"
                 value={skills}
@@ -195,17 +195,17 @@ const WorkerProfile: React.FC = () => {
           </div>
 
           {/* Live Skill Badges Preview */}
-          <div className="bg-slate-100/80 border border-slate-200 p-4 rounded-2xl space-y-2">
-            <span className="text-slate-700 font-bold text-xs uppercase tracking-wider block">
+          <div className="bg-paper-bg/80 border border-hairline p-4 rounded-2xl space-y-2">
+            <span className="text-ink-text font-bold text-xs uppercase tracking-wider block">
               Skill Badges Preview
             </span>
             <div className="flex flex-wrap gap-2 text-xs">
               {parsedSkills.map((skill) => (
                 <span
                   key={skill}
-                  className="bg-brand-50 border border-brand-200 text-brand-700 font-semibold px-3 py-1.5 rounded-full text-xs flex items-center gap-1.5"
+                  className="bg-moss-sage border border-moss-sage text-moss-deep font-semibold px-3 py-1.5 rounded-full text-xs flex items-center gap-1.5"
                 >
-                  <CheckCircle2 className="w-3.5 h-3.5 text-brand-600" /> {skill}
+                  <CheckCircle2 className="w-3.5 h-3.5 text-moss-deep" /> {skill}
                 </span>
               ))}
             </div>
@@ -216,7 +216,7 @@ const WorkerProfile: React.FC = () => {
             <button
               type="submit"
               disabled={isSaving}
-              className="px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md transition-all flex items-center gap-2 disabled:opacity-50"
+              className="px-6 py-3 rounded-xl bg-moss-primary hover:bg-moss-deep text-white font-bold text-xs shadow-md transition-all flex items-center gap-2 disabled:opacity-50"
             >
               {isSaving ? (
                 <>

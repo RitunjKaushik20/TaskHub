@@ -7,26 +7,16 @@ export default {
   theme: {
     extend: {
       colors: {
-        brand: {
-          50: '#eef2ff',
-          100: '#e0e7ff',
-          500: '#6366f1',
-          600: '#4f46e5',
-          700: '#4338ca',
-          800: '#3730a3',
-          900: '#312e81',
-          accent: '#06b6d4',
-          emerald: '#10b981',
-          amber: '#f59e0b',
-          rose: '#f43f5e',
+        moss: {
+          deep: '#3d4127',
+          primary: '#636b2f',
+          sage: '#bac095',
+          light: '#d4de95',
         },
-        dark: {
-          bg: '#080c14',
-          card: '#0f172a',
-          surface: '#1e293b',
-          border: '#334155',
-          hover: '#1e293b',
-        }
+        'paper-bg': '#fafaf6',
+        'ink-text': '#23261a',
+        'ink-muted': '#5c6152',
+        hairline: '#dcdfc9',
       },
       fontFamily: {
         sans: ['Outfit', 'Inter', 'sans-serif'],
@@ -42,8 +32,8 @@ export default {
           '50%': { transform: 'translateY(-10px)' },
         },
         glow: {
-          '0%': { boxShadow: '0 0 15px rgba(99, 102, 241, 0.2)' },
-          '100%': { boxShadow: '0 0 30px rgba(99, 102, 241, 0.6)' },
+          '0%': { boxShadow: '0 0 15px rgba(99, 107, 47, 0.2)' },
+          '100%': { boxShadow: '0 0 30px rgba(99, 107, 47, 0.5)' },
         }
       }
     },

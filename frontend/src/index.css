@@ -8,24 +8,24 @@ input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus,
 input:-webkit-autofill:active {
-  -webkit-box-shadow: 0 0 0 1000px #ffffff inset !important;
-  -webkit-text-fill-color: #0f172a !important;
+  -webkit-box-shadow: 0 0 0 1000px #fafaf6 inset !important;
+  -webkit-text-fill-color: #23261a !important;
   transition: background-color 5000s ease-in-out 0s;
-  caret-color: #0f172a !important;
+  caret-color: #23261a !important;
 }
 
-/* Custom Scrollbar (Light Theme) */
+/* Custom Scrollbar (Mossy Hollow Theme) */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: #f8fafc;
+  background: #fafaf6;
 }
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: #bac095;
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: #636b2f;
 }

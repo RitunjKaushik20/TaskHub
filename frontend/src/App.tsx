@@ -48,8 +48,6 @@ import AdminUserManagement from './pages/admin/UserManagement';
 import AdminBusinessApprovals from './pages/admin/BusinessApprovals';
 import AdminTaskOversight from './pages/admin/TaskOversight';
 import AdminSubmissionOversight from './pages/admin/SubmissionOversight';
-import AdminVerificationQueue from './pages/admin/VerificationQueue';
-import AdminPayments from './pages/admin/Payments';
 import AdminFraudDetection from './pages/admin/FraudDetection';
 import AdminReportsAnalytics from './pages/admin/ReportsAnalytics';
 import AdminSettings from './pages/admin/Settings';
@@ -127,8 +125,6 @@ const App: React.FC = () => {
               <Route path="business-approvals" element={<AdminBusinessApprovals />} />
               <Route path="tasks" element={<AdminTaskOversight />} />
               <Route path="submissions" element={<AdminSubmissionOversight />} />
-              <Route path="verification" element={<AdminVerificationQueue />} />
-              <Route path="payments" element={<AdminPayments />} />
               <Route path="fraud" element={<AdminFraudDetection />} />
               <Route path="reports" element={<AdminReportsAnalytics />} />
               <Route path="settings" element={<AdminSettings />} />

@@ -15,7 +15,7 @@ const ApprovedBusinessRoute: React.FC<{ children: React.ReactNode }> = ({ childr
     return (
       <div className="max-w-xl mx-auto py-12 px-4">
         <ApprovalBanner status={user.approvalStatus} className="text-left" />
-        <div className="p-5 mt-4 rounded-2xl bg-white border border-slate-200 shadow-sm text-xs text-slate-600">
+        <div className="p-5 mt-4 rounded-2xl bg-paper-bg border border-hairline shadow-sm text-xs text-ink-muted">
           This area is reserved for approved business accounts. Your request has been
           noted and a TaskHub admin will review your company shortly.
         </div>

@@ -19,14 +19,14 @@ const Field: React.FC<FieldProps & { children: React.ReactNode }> = ({
 }) => (
   <div className={cn('space-y-1.5', className)}>
     {label && (
-      <label className="block text-xs font-bold text-slate-900">
+      <label className="block text-xs font-bold text-ink-text">
         {label}
-        {required && <span className="text-rose-500"> *</span>}
-        {hint && <span className="text-slate-400 text-[10px] font-normal"> ({hint})</span>}
+        {required && <span className="text-moss-deep"> *</span>}
+        {hint && <span className="text-ink-muted text-[10px] font-normal"> ({hint})</span>}
       </label>
     )}
     {children}
-    {error && <p className="text-[10px] text-rose-500 font-medium">{error}</p>}
+    {error && <p className="text-[10px] text-moss-deep font-medium">{error}</p>}
   </div>
 );
 

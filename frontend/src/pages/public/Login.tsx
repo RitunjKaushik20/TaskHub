@@ -9,7 +9,6 @@ import { LogIn, Layers, Mail, Lock, Eye, EyeOff, Loader2, KeyRound, AlertTriangl
 import { cn } from '../../lib/utils';
 
 import GoogleAuthModal from '../../components/common/GoogleAuthModal';
-import { API_URL } from '../../lib/api';
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -70,6 +69,14 @@ const Login: React.FC = () => {
       window.history.replaceState({}, document.title, window.location.pathname);
     }
 
+    if (searchParams.get('google_error') === 'verification') {
+      toast.error('Google verification failed', 'We could not verify your Google account. Please try again.');
+      window.history.replaceState({}, document.title, window.location.pathname);
+    } else if (searchParams.get('google_error') === 'disposable') {
+      toast.error('Email not allowed', 'Temporary email addresses cannot be used. Please use your real Google account.');
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+
     if (searchParams.get('oauth') === 'google_success' && !hasProcessedOAuth.current) {
       hasProcessedOAuth.current = true;
       const token = searchParams.get('token');
@@ -93,7 +100,7 @@ const Login: React.FC = () => {
   }, [location.search, navigate, toast, hydrateSession]);
 
   const handleGoogleConnect = () => {
-    window.location.href = `${API_URL}/google/connect`;
+    setIsGoogleModalOpen(true);
   };
 
   const handleResetSubmit = (e: React.FormEvent) => {
@@ -112,23 +119,23 @@ const Login: React.FC = () => {
 
   return (
     <div className="min-h-[85vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full p-8 rounded-3xl bg-white border border-slate-200 space-y-6 shadow-xl relative overflow-hidden">
+      <div className="max-w-md w-full p-8 rounded-3xl bg-paper-bg border border-hairline space-y-6 shadow-xl relative overflow-hidden">
         
         {/* Top Glow Accent */}
-        <div className="absolute -top-24 -left-24 w-48 h-48 bg-brand-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-24 -right-24 w-48 h-48 bg-brand-accent/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -top-24 -left-24 w-48 h-48 bg-moss-primary/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-24 -right-24 w-48 h-48 bg-moss-primary/10 rounded-full blur-3xl pointer-events-none" />
 
         {/* Header */}
         <div className="text-center space-y-2 relative z-10">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-brand-600 via-indigo-600 to-brand-accent p-0.5 mx-auto shadow-lg shadow-brand-500/10">
-            <div className="w-full h-full bg-slate-100 rounded-[14px] flex items-center justify-center">
-              <Layers className="w-7 h-7 text-brand-600" />
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-moss-deep via-moss-primary to-moss-primary p-0.5 mx-auto shadow-lg shadow-moss-primary/15">
+            <div className="w-full h-full bg-paper-bg rounded-[14px] flex items-center justify-center">
+              <Layers className="w-7 h-7 text-moss-deep" />
             </div>
           </div>
-          <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+          <h2 className="text-2xl font-extrabold text-ink-text tracking-tight">
             {isResetMode ? 'Recover Password' : 'Welcome Back'}
           </h2>
-          <p className="text-xs text-slate-600">
+          <p className="text-xs text-ink-muted">
             {isResetMode
               ? 'Enter your email to receive recovery instructions'
               : 'Sign in to access your micro-work dashboard & wallet'}
@@ -139,29 +146,29 @@ const Login: React.FC = () => {
         {isResetMode ? (
           <form onSubmit={handleResetSubmit} className="space-y-4 relative z-10 animate-in fade-in-50 duration-300">
             {resetSent ? (
-              <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-center space-y-2">
-                <p className="text-xs font-semibold text-emerald-700">Reset email dispatched!</p>
-                <p className="text-[11px] text-slate-500">Redirecting to sign-in screen...</p>
+              <div className="p-4 rounded-2xl bg-moss-primary/10 border border-moss-primary/30 text-center space-y-2">
+                <p className="text-xs font-semibold text-moss-deep">Reset email dispatched!</p>
+                <p className="text-[11px] text-ink-muted">Redirecting to sign-in screen...</p>
               </div>
             ) : (
               <>
                 <div>
-                  <label className="block text-xs font-bold text-slate-900 mb-1.5">Email Address</label>
+                  <label className="block text-xs font-bold text-ink-text mb-1.5">Email Address</label>
                   <div className="relative">
-                    <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 z-10 pointer-events-none" />
+                    <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted z-10 pointer-events-none" />
                     <input
                       type="email"
                       value={resetEmail}
                       onChange={(e) => setResetEmail(e.target.value)}
                       placeholder="name@example.com"
-                      className="w-full glass-input !pl-11 !pr-4 py-3 text-xs rounded-xl text-slate-900 placeholder:text-slate-400 bg-white border-slate-300"
+                      className="w-full glass-input !pl-11 !pr-4 py-3 text-xs rounded-xl text-ink-text placeholder:text-ink-muted/70 bg-paper-bg border-moss-sage"
                     />
                   </div>
                 </div>
 
                 <button
                   type="submit"
-                  className="w-full py-3 rounded-xl bg-gradient-to-r from-brand-600 to-brand-accent text-white font-bold text-xs shadow-lg shadow-brand-500/20 flex items-center justify-center gap-2 hover:opacity-95 transition-all"
+                  className="w-full py-3 rounded-xl bg-gradient-to-r from-moss-deep to-moss-primary text-white font-bold text-xs shadow-lg shadow-moss-primary/25 flex items-center justify-center gap-2 hover:opacity-95 transition-all"
                 >
                   <KeyRound className="w-4 h-4" /> Send Recovery Link
                 </button>
@@ -170,7 +177,7 @@ const Login: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setIsResetMode(false)}
-                    className="text-xs text-brand-accent hover:underline font-semibold"
+                    className="text-xs text-moss-deep hover:underline font-semibold"
                   >
                     Back to Sign In
                   </button>
@@ -181,17 +188,17 @@ const Login: React.FC = () => {
         ) : (
           <>
             {/* Mode Switcher Tabs */}
-            <div className="flex bg-slate-100 rounded-xl p-1 border border-slate-200 relative z-10">
+            <div className="flex bg-paper-bg rounded-xl p-1 border border-hairline relative z-10">
               <button
                 type="button"
-                className="flex-1 py-2 rounded-lg text-xs font-bold bg-brand-600 text-white shadow-md transition-all"
+                className="flex-1 py-2 rounded-lg text-xs font-bold bg-moss-deep text-white shadow-md transition-all"
               >
                 Sign In
               </button>
               <button
                 type="button"
                 onClick={() => navigate('/register')}
-                className="flex-1 py-2 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 transition-all"
+                className="flex-1 py-2 rounded-lg text-xs font-semibold text-ink-muted hover:text-ink-text transition-all"
               >
                 Create Account
               </button>
@@ -201,7 +208,7 @@ const Login: React.FC = () => {
             <button
               type="button"
               onClick={handleGoogleConnect}
-              className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl bg-white border border-slate-300 hover:border-slate-400 text-slate-900 text-xs font-semibold transition-all hover:bg-slate-50 relative z-10 shadow-sm"
+              className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl bg-paper-bg border border-moss-sage hover:border-moss-sage text-ink-text text-xs font-semibold transition-all hover:bg-paper-bg relative z-10 shadow-sm"
             >
               <svg className="w-4 h-4" viewBox="0 0 24 24">
                 <path
@@ -225,8 +232,8 @@ const Login: React.FC = () => {
             </button>
 
             <div className="relative flex items-center justify-center relative z-10">
-              <div className="border-t border-slate-200 w-full" />
-              <span className="bg-white px-3 text-[10px] uppercase font-bold text-slate-500 absolute">
+              <div className="border-t border-hairline w-full" />
+              <span className="bg-paper-bg px-3 text-[10px] uppercase font-bold text-ink-muted absolute">
                 Or sign in with email
               </span>
             </div>
@@ -234,49 +241,49 @@ const Login: React.FC = () => {
             {/* Form */}
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 relative z-10">
               <div>
-                <label className="block text-xs font-bold text-slate-900 mb-1.5">Email Address</label>
+                <label className="block text-xs font-bold text-ink-text mb-1.5">Email Address</label>
                 <div className="relative">
-                  <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 z-10 pointer-events-none" />
+                  <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted z-10 pointer-events-none" />
                   <input
                     type="email"
                     {...register('email')}
                     placeholder="name@example.com"
                     className={cn(
-                      "w-full glass-input !pl-11 !pr-4 py-3 text-xs rounded-xl transition-all text-slate-900 placeholder:text-slate-400 bg-white border-slate-300",
-                      errors.email ? "border-rose-500 focus:ring-rose-500/20" : "border-slate-300"
+                      "w-full glass-input !pl-11 !pr-4 py-3 text-xs rounded-xl transition-all text-ink-text placeholder:text-ink-muted/70 bg-paper-bg border-moss-sage",
+                      errors.email ? "border-moss-deep focus:ring-moss-deep/20" : "border-moss-sage"
                     )}
                   />
                 </div>
                 {errors.email && (
-                  <p className="text-[10px] text-rose-500 mt-1 flex items-center gap-1 font-medium">
+                  <p className="text-[10px] text-moss-deep mt-1 flex items-center gap-1 font-medium">
                     <AlertTriangle className="w-3 h-3" /> {errors.email.message}
                   </p>
                 )}
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-900 mb-1.5">Password</label>
+                <label className="block text-xs font-bold text-ink-text mb-1.5">Password</label>
                 <div className="relative">
-                  <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 z-10 pointer-events-none" />
+                  <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted z-10 pointer-events-none" />
                   <input
                     type={showPassword ? "text" : "password"}
                     {...register('password')}
                     placeholder="••••••••"
                     className={cn(
-                      "w-full glass-input !pl-11 !pr-12 py-3 text-xs rounded-xl transition-all text-slate-900 placeholder:text-slate-400 bg-white border-slate-300",
-                      errors.password ? "border-rose-500 focus:ring-rose-500/20" : "border-slate-300"
+                      "w-full glass-input !pl-11 !pr-12 py-3 text-xs rounded-xl transition-all text-ink-text placeholder:text-ink-muted/70 bg-paper-bg border-moss-sage",
+                      errors.password ? "border-moss-deep focus:ring-moss-deep/20" : "border-moss-sage"
                     )}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 transition-colors z-10"
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-ink-muted hover:text-ink-text transition-colors z-10"
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
                 {errors.password && (
-                  <p className="text-[10px] text-rose-500 mt-1 flex items-center gap-1 font-medium">
+                  <p className="text-[10px] text-moss-deep mt-1 flex items-center gap-1 font-medium">
                     <AlertTriangle className="w-3 h-3" /> {errors.password.message}
                   </p>
                 )}
@@ -288,14 +295,14 @@ const Login: React.FC = () => {
                     type="checkbox"
                     checked={rememberMe}
                     onChange={(e) => setRememberMe(e.target.checked)}
-                    className="w-4 h-4 rounded border-slate-300 bg-white text-brand-500 focus:ring-brand-500 focus:ring-offset-0"
+                    className="w-4 h-4 rounded border-moss-sage bg-paper-bg text-moss-primary focus:ring-moss-primary focus:ring-offset-0"
                   />
-                  <span className="text-slate-700 font-medium">Remember me</span>
+                  <span className="text-ink-text font-medium">Remember me</span>
                 </label>
                 <button
                   type="button"
                   onClick={() => setIsResetMode(true)}
-                  className="text-brand-accent hover:underline font-semibold"
+                  className="text-moss-deep hover:underline font-semibold"
                 >
                   Forgot password?
                 </button>
@@ -304,7 +311,7 @@ const Login: React.FC = () => {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full py-3.5 rounded-xl bg-gradient-to-r from-brand-600 via-indigo-600 to-brand-accent hover:opacity-95 text-white font-bold text-xs shadow-xl shadow-brand-500/25 transition-all flex items-center justify-center gap-2"
+                className="w-full py-3.5 rounded-xl bg-gradient-to-r from-moss-deep via-moss-primary to-moss-primary hover:opacity-95 text-white font-bold text-xs shadow-xl shadow-moss-primary/30 transition-all flex items-center justify-center gap-2"
               >
                 {isSubmitting ? (
                   <>
@@ -318,9 +325,9 @@ const Login: React.FC = () => {
               </button>
             </form>
 
-            <p className="text-center text-xs text-slate-600 relative z-10">
+            <p className="text-center text-xs text-ink-muted relative z-10">
               Don't have an account?{' '}
-              <Link to="/register" className="text-brand-accent font-semibold hover:underline">
+              <Link to="/register" className="text-moss-deep font-semibold hover:underline">
                 Create an account
               </Link>
             </p>

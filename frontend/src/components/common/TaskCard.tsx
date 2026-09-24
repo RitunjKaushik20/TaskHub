@@ -29,42 +29,42 @@ const CATEGORY_THEMES: Record<
   { bg: string; icon: React.ComponentType<{ className?: string }>; badge: string; accent: string }
 > = {
   'AI & Data Annotation': {
-    bg: 'from-emerald-100/80 via-teal-50 to-white',
+    bg: 'from-moss-sage/80 via-moss-sage/40 to-paper-bg',
     icon: Bot,
     badge: 'AI VERIFIED',
-    accent: 'text-emerald-800 border-emerald-300 bg-emerald-100/90',
+    accent: 'text-moss-deep border-moss-sage bg-moss-sage/90',
   },
   'UX Research': {
-    bg: 'from-purple-100/80 via-indigo-50 to-white',
+    bg: 'from-moss-sage/80 via-moss-sage/40 to-paper-bg',
     icon: Search,
     badge: 'TOP RESEARCH',
-    accent: 'text-purple-800 border-purple-300 bg-purple-100/90',
+    accent: 'text-moss-deep border-moss-sage bg-moss-sage/90',
   },
   'Translation & Localization': {
-    bg: 'from-cyan-100/80 via-sky-50 to-white',
+    bg: 'from-moss-sage/80 via-moss-sage/40 to-paper-bg',
     icon: Sparkles,
     badge: 'HUMAN REVIEW',
-    accent: 'text-cyan-800 border-cyan-300 bg-cyan-100/90',
+    accent: 'text-moss-deep border-moss-sage bg-moss-sage/90',
   },
   'Software Engineering': {
-    bg: 'from-amber-100/80 via-orange-50 to-white',
+    bg: 'from-moss-sage/80 via-moss-sage/40 to-paper-bg',
     icon: Code,
     badge: 'CODE AUDIT',
-    accent: 'text-amber-800 border-amber-300 bg-amber-100/90',
+    accent: 'text-moss-deep border-moss-sage bg-moss-sage/90',
   },
   'Lead Generation': {
-    bg: 'from-rose-100/80 via-pink-50 to-white',
+    bg: 'from-moss-sage/80 via-moss-sage/40 to-paper-bg',
     icon: FileText,
     badge: 'VERIFIED LEADS',
-    accent: 'text-rose-800 border-rose-300 bg-rose-100/90',
+    accent: 'text-moss-deep border-moss-sage bg-moss-sage/90',
   },
 };
 
 const DEFAULT_THEME = {
-  bg: 'from-slate-100 via-slate-50 to-white',
+  bg: 'from-paper-bg via-paper-bg to-paper-bg',
   icon: Bot,
   badge: 'MICRO-GIG',
-  accent: 'text-emerald-800 border-emerald-300 bg-emerald-100/90',
+  accent: 'text-moss-deep border-moss-sage bg-moss-sage/90',
 };
 
 export const TaskCard: React.FC<TaskCardProps> = ({
@@ -101,12 +101,12 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   return (
     <div
       onClick={handleCardClick}
-      className="group relative fiverr-card flex flex-col justify-between cursor-pointer border border-slate-200/90 hover:border-emerald-500/60 hover:shadow-xl hover:shadow-emerald-500/5 transition-all duration-300 transform hover:-translate-y-1 bg-white"
+      className="group relative fiverr-card flex flex-col justify-between cursor-pointer border border-hairline/90 hover:border-moss-primary/60 hover:shadow-xl hover:shadow-moss-primary/10 transition-all duration-300 transform hover:-translate-y-1 bg-paper-bg"
     >
       {/* Top Banner / Gig Thumbnail (Light Theme) */}
-      <div className={`relative h-40 bg-gradient-to-br ${theme.bg} p-4 flex flex-col justify-between overflow-hidden border-b border-slate-100`}>
+      <div className={`relative h-40 bg-gradient-to-br ${theme.bg} p-4 flex flex-col justify-between overflow-hidden border-b border-moss-sage/60`}>
         {/* Abstract background decorative icon */}
-        <div className="absolute right-3 top-3 text-slate-800/10 group-hover:text-slate-800/20 transition-colors pointer-events-none group-hover:scale-110 duration-300">
+        <div className="absolute right-3 top-3 text-ink-text/10 group-hover:text-ink-text/20 transition-colors pointer-events-none group-hover:scale-110 duration-300">
           <CategoryIcon className="w-16 h-16" />
         </div>
 
@@ -124,8 +124,8 @@ export const TaskCard: React.FC<TaskCardProps> = ({
             }}
             className={`p-1.5 rounded-full backdrop-blur-md transition-all shadow-sm ${
               isSaved
-                ? 'bg-rose-500 text-white shadow-md scale-110'
-                : 'bg-white/90 text-slate-400 hover:text-rose-500 hover:bg-white'
+                ? 'bg-moss-deep text-white shadow-md scale-110'
+                : 'bg-paper-bg/90 text-ink-muted hover:text-moss-deep hover:bg-paper-bg'
             }`}
             title={isSaved ? 'Remove from saved' : 'Save gig'}
           >
@@ -135,11 +135,11 @@ export const TaskCard: React.FC<TaskCardProps> = ({
 
         {/* Bottom banner details: Difficulty pill & Seats */}
         <div className="relative z-10 flex items-center justify-between text-[11px]">
-          <span className="px-2 py-0.5 rounded-md bg-white/90 border border-slate-200/80 text-slate-700 font-semibold shadow-xs">
+          <span className="px-2 py-0.5 rounded-md bg-paper-bg/90 border border-hairline/80 text-ink-text font-semibold shadow-xs">
             {task.difficulty}
           </span>
-          <span className="flex items-center gap-1 font-mono text-[10px] bg-white/90 px-2 py-0.5 rounded-md border border-slate-200/80 text-emerald-700 font-semibold shadow-xs">
-            <Users className="w-3 h-3 text-emerald-600" />
+          <span className="flex items-center gap-1 font-mono text-[10px] bg-paper-bg/90 px-2 py-0.5 rounded-md border border-hairline/80 text-moss-deep font-semibold shadow-xs">
+            <Users className="w-3 h-3 text-moss-deep" />
             {task.assignedWorkersCount}/{task.workerLimit} Seats
           </span>
         </div>
@@ -150,41 +150,41 @@ export const TaskCard: React.FC<TaskCardProps> = ({
         <div className="space-y-2.5">
           {/* Business Poster Info Row */}
           <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center font-bold text-xs text-white shadow-xs">
+            <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-moss-primary to-moss-deep flex items-center justify-center font-bold text-xs text-white shadow-xs">
               {posterInitial}
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-1.5">
-                <span className="text-xs font-bold text-slate-800 truncate">
+                <span className="text-xs font-bold text-ink-text truncate">
                   {posterDisplayName}
                 </span>
-                <span className="inline-flex items-center gap-0.5 text-[9px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200">
-                  <CheckCircle2 className="w-2.5 h-2.5 text-emerald-600" /> Verified
+                <span className="inline-flex items-center gap-0.5 text-[9px] font-bold text-moss-deep bg-moss-sage px-1.5 py-0.2 rounded border border-moss-sage">
+                  <CheckCircle2 className="w-2.5 h-2.5 text-moss-deep" /> Verified
                 </span>
               </div>
-              <span className="text-[10px] text-slate-500 block -mt-0.5">Level 2 Business</span>
+              <span className="text-[10px] text-ink-muted block -mt-0.5">Level 2 Business</span>
             </div>
           </div>
 
           {/* Gig Title (High contrast: dark slate -> emerald green on hover) */}
-          <h3 className="text-sm font-bold text-slate-900 line-clamp-2 leading-snug group-hover:text-emerald-600 transition-colors">
+          <h3 className="text-sm font-bold text-ink-text line-clamp-2 leading-snug group-hover:text-moss-deep transition-colors">
             {task.title}
           </h3>
 
           {/* Short Description */}
-          <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed">
+          <p className="text-xs text-ink-muted line-clamp-2 leading-relaxed">
             {task.description}
           </p>
 
           {/* Rating & Reviews Line */}
           <div className="flex items-center gap-1.5 text-xs">
-            <div className="flex items-center text-amber-500 font-bold gap-1">
-              <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+            <div className="flex items-center text-moss-deep font-bold gap-1">
+              <Star className="w-3.5 h-3.5 fill-moss-primary text-moss-primary" />
               <span>{ratingScore}</span>
             </div>
-            <span className="text-slate-400 text-[11px]">({reviewsCount})</span>
-            <span className="text-slate-300 text-[10px]">•</span>
-            <span className="text-[10px] text-slate-500 font-medium">{task.category}</span>
+            <span className="text-ink-muted text-[11px]">({reviewsCount})</span>
+            <span className="text-ink-muted text-[10px]">•</span>
+            <span className="text-[10px] text-ink-muted font-medium">{task.category}</span>
           </div>
 
           {/* Skill Tag Pills */}
@@ -193,13 +193,13 @@ export const TaskCard: React.FC<TaskCardProps> = ({
               {skillsList.slice(0, 3).map((skill) => (
                 <span
                   key={skill}
-                  className="text-[10px] font-medium text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200"
+                  className="text-[10px] font-medium text-ink-text bg-paper-bg px-2 py-0.5 rounded-md border border-hairline"
                 >
                   {skill}
                 </span>
               ))}
               {skillsList.length > 3 && (
-                <span className="text-[10px] text-slate-400 px-1 py-0.5">
+                <span className="text-[10px] text-ink-muted px-1 py-0.5">
                   +{skillsList.length - 3}
                 </span>
               )}
@@ -208,12 +208,12 @@ export const TaskCard: React.FC<TaskCardProps> = ({
         </div>
 
         {/* Card Footer: Starting At / Reward & Direct Action */}
-        <div className="pt-3 border-t border-slate-100 mt-2 flex items-center justify-between">
+        <div className="pt-3 border-t border-moss-sage/60 mt-2 flex items-center justify-between">
           <div>
-            <span className="text-[9px] uppercase font-bold text-slate-400 tracking-wider block">
+            <span className="text-[9px] uppercase font-bold text-ink-muted tracking-wider block">
               TASK REWARD
             </span>
-            <span className="text-base font-black text-emerald-600">
+            <span className="text-base font-black text-moss-deep">
               {formatCurrency(task.reward, task.currency)}
             </span>
           </div>
@@ -226,7 +226,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                 onAccept(task.id, task.title);
               }}
               disabled={isAccepting}
-              className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-sm transition-all flex items-center gap-1.5 disabled:opacity-50"
+              className="px-3.5 py-1.5 rounded-xl bg-moss-primary hover:bg-moss-primary text-white font-bold text-xs shadow-sm transition-all flex items-center gap-1.5 disabled:opacity-50"
             >
               {isAccepting ? (
                 <>
@@ -242,9 +242,9 @@ export const TaskCard: React.FC<TaskCardProps> = ({
             <Link
               to={`/tasks/${task.id}`}
               onClick={(e) => e.stopPropagation()}
-              className="px-3.5 py-1.5 rounded-xl bg-slate-50 border border-slate-200 hover:border-emerald-500 hover:bg-emerald-50/50 text-slate-700 hover:text-emerald-700 text-xs font-semibold flex items-center gap-1 transition-all"
+              className="px-3.5 py-1.5 rounded-xl bg-paper-bg border border-hairline hover:border-moss-primary hover:bg-moss-sage/60 text-ink-text hover:text-moss-deep text-xs font-semibold flex items-center gap-1 transition-all"
             >
-              Specs <ArrowRight className="w-3 h-3 text-emerald-600" />
+              Specs <ArrowRight className="w-3 h-3 text-moss-deep" />
             </Link>
           )}
         </div>

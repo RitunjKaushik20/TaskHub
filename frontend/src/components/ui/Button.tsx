@@ -11,11 +11,11 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const VARIANTS: Record<ButtonVariant, string> = {
-  primary: 'bg-gradient-to-r from-brand-600 to-indigo-600 text-white shadow-md hover:opacity-95',
-  secondary: 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm',
-  outline: 'bg-white border border-slate-300 text-slate-700 hover:bg-slate-50',
-  ghost: 'bg-transparent text-slate-600 hover:bg-slate-100 hover:text-slate-900',
-  danger: 'bg-rose-600 hover:bg-rose-700 text-white shadow-sm',
+  primary: 'bg-gradient-to-r from-moss-deep to-moss-primary text-white shadow-md hover:opacity-95',
+  secondary: 'bg-moss-primary hover:bg-moss-deep text-white shadow-sm',
+  outline: 'bg-paper-bg border border-moss-sage text-ink-text hover:bg-paper-bg',
+  ghost: 'bg-transparent text-ink-muted hover:bg-paper-bg hover:text-ink-text',
+  danger: 'bg-moss-deep hover:bg-moss-deep text-white shadow-sm',
 };
 
 const SIZES: Record<ButtonSize, string> = {

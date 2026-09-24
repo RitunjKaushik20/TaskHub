@@ -1,94 +1,87 @@
 /* ============================================================
    TaskHub Design Tokens — SINGLE SOURCE OF TRUTH for theming.
    ============================================================
-   All public, worker and business (light theme) surfaces should
-   derive colors, spacing, radii and typography from these tokens.
-   Admin surfaces intentionally stay dark and do not consume these.
+   Palette: "Mossy Hollow" (earthy olive/green + warm neutrals).
+   All public, worker, business and admin surfaces derive colors
+   from these tokens. Do not hardcode hex values into components.
 
-   Import this file (already done in src/index.css) — do not fork
-   colors into individual pages.
+   Readability discipline (WCAG AA):
+   - Body/label text is ink-text on paper-bg (or white/near-white).
+   - Light text (white / paper-bg) ONLY on moss-deep / moss-primary.
+   - moss-sage & moss-light are fills/badges/borders, never the
+     surface directly under body text.
    ============================================================ */
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap');
 @import 'tailwindcss';
 
 @theme {
-  /* Light theme surfaces */
-  --color-dark-bg: #f8fafc;
-  --color-dark-card: #ffffff;
-  --color-dark-surface: #f1f5f9;
-  --color-dark-border: #e2e8f0;
+  /* ================= MOSSY HOLLOW CORE ================= */
 
-  /* Primary brand (indigo) */
-  --color-brand-50: #eef2ff;
-  --color-brand-100: #e0e7ff;
-  --color-brand-500: #4f46e5;
-  --color-brand-600: #4338ca;
-  --color-brand-700: #3730a3;
-  --color-brand-800: #312e81;
-  --color-brand-900: #1e1b4b;
-  --color-brand-accent: #0891b2;
+  /* Brand/action olive */
+  --color-moss-deep: #3d4127;      /* darkest — deep olive/near-black-green */
+  --color-moss-primary: #636b2f;   /* primary brand/action — mid olive */
+  --color-moss-sage: #bac095;      /* soft muted sage — secondary surfaces */
+  --color-moss-light: #d4de95;     /* pale yellow-green — sparing accent only */
 
-  /* Secondary brand (emerald) — success / marketplace accent */
-  --color-fiverr-50: #f0fdf4;
-  --color-fiverr-100: #dcfce7;
-  --color-fiverr-400: #10b981;
-  --color-fiverr-500: #059669;
-  --color-fiverr-600: #047857;
-  --color-fiverr-700: #065f46;
+  /* Supporting neutrals (extensions of the palette) */
+  --color-paper-bg: #fafaf6;       /* main page background — warm off-white */
+  --color-ink-text: #23261a;       /* primary body text — near-black w/ green undertone */
+  --color-ink-muted: #5c6152;      /* secondary/muted text — muted olive-gray */
+  --color-hairline: #dcdfc9;      /* borders/dividers — soft desaturated tint */
 
   /* Typography */
   --font-sans: 'Outfit', 'Inter', sans-serif;
 }
 
-/* ---- Light Theme Base ---- */
+/* ---- Mossy Hollow Theme Base ---- */
 body {
-  @apply bg-slate-50 text-slate-800 font-sans antialiased min-h-screen overflow-x-hidden;
+  @apply bg-paper-bg text-ink-text font-sans antialiased min-h-screen overflow-x-hidden;
 }
 
 /* Global High-Contrast Typography */
 h1, h2, h3, h4, h5, h6 {
-  color: #0f172a;
+  color: #23261a; /* ink-text */
 }
 
 body, p {
-  color: #334155;
+  color: #5c6152; /* ink-muted */
 }
 
 label {
-  color: #0f172a;
+  color: #23261a; /* ink-text */
   font-weight: 600;
 }
 
 input, textarea, select {
-  color: #0f172a;
+  color: #23261a; /* ink-text */
 }
 
 input::placeholder, textarea::placeholder {
-  color: #64748b;
+  color: #5c6152; /* ink-muted */
 }
 
-/* ---- Clean White Card Panels & Soft Shadows ---- */
+/* ---- Warm Paper Card Panels & Soft Shadows ---- */
 .glass-panel {
-  @apply bg-white border border-slate-200/90 shadow-sm hover:shadow-md transition-all duration-300 rounded-2xl text-slate-800;
+  @apply bg-paper-bg border border-hairline shadow-sm hover:shadow-md transition-all duration-300 rounded-2xl text-ink-text;
 }
 
 .glass-card {
-  @apply bg-white border border-slate-200 shadow-sm hover:shadow-md hover:border-indigo-400/60 transition-all duration-300 rounded-2xl text-slate-800;
+  @apply bg-paper-bg border border-hairline shadow-sm hover:shadow-md hover:border-moss-sage transition-all duration-300 rounded-2xl text-ink-text;
 }
 
 /* ---- High-Contrast Crisp Inputs ---- */
 .glass-input {
-  @apply bg-white border border-slate-300 text-slate-900 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500 transition-all rounded-xl py-3 px-4 shadow-sm;
+  @apply bg-paper-bg border border-hairline text-ink-text placeholder:text-ink-muted/70 focus:outline-none focus:ring-2 focus:ring-moss-primary/30 focus:border-moss-primary transition-all rounded-xl py-3 px-4 shadow-sm;
 }
 
-/* ---- Marketplace Utilities (Light Theme) ---- */
+/* ---- Marketplace Utilities (Mossy Hollow Theme) ---- */
 .fiverr-card {
-  @apply bg-white border border-slate-200 rounded-2xl overflow-hidden hover:border-emerald-500/60 hover:shadow-xl hover:shadow-emerald-500/10 transition-all duration-300;
+  @apply bg-paper-bg border border-hairline rounded-2xl overflow-hidden hover:border-moss-sage hover:shadow-xl hover:shadow-moss-primary/10 transition-all duration-300;
 }
 
 .fiverr-badge {
-  @apply text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200;
+  @apply text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-moss-sage/40 text-moss-deep border border-moss-sage/60;
 }
 
 .no-scrollbar::-webkit-scrollbar {
@@ -100,5 +93,5 @@ input::placeholder, textarea::placeholder {
 }
 
 .gradient-text {
-  @apply bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 via-purple-600 to-cyan-600;
+  @apply bg-clip-text text-transparent bg-gradient-to-r from-moss-deep to-moss-primary;
 }

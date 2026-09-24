@@ -29,7 +29,17 @@ class SlidingWindowLimiter {
 export const otpSendLimiter = new SlidingWindowLimiter();
 export const otpVerifyLimiter = new SlidingWindowLimiter();
 
+// Brute-force guard on password login (per email AND per IP).
+export const loginLimiter = new SlidingWindowLimiter();
+// Registration spam guard (per IP + per email).
+export const registerLimiter = new SlidingWindowLimiter();
+
 export const OTP_SEND_MAX = 3; // per email & per IP
 export const OTP_SEND_WINDOW_MS = 15 * 60 * 1000; // 15 minutes
 export const OTP_VERIFY_MAX = 10; // per IP / email guard against brute force
 export const OTP_VERIFY_WINDOW_MS = 15 * 60 * 1000;
+
+export const LOGIN_MAX = 10; // failed login attempts per IP & per email
+export const LOGIN_WINDOW_MS = 15 * 60 * 1000; // 15 minutes
+export const REGISTER_MAX = 10; // signups per IP
+export const REGISTER_WINDOW_MS = 60 * 60 * 1000; // 1 hour

@@ -95,11 +95,11 @@ const PasswordStrengthIndicator: React.FC<{ password?: string }> = ({ password }
   const strength = calculatePasswordStrength(password);
 
   const getStrengthColor = (score: number) => {
-    if (score <= 1) return 'text-rose-500 bg-rose-500';
-    if (score <= 2) return 'text-orange-500 bg-orange-500';
-    if (score <= 3) return 'text-yellow-500 bg-yellow-500';
-    if (score <= 4) return 'text-blue-500 bg-blue-500';
-    return 'text-emerald-500 bg-emerald-500';
+    if (score <= 1) return 'text-moss-deep bg-moss-deep';
+    if (score <= 2) return 'text-moss-deep bg-moss-primary';
+    if (score <= 3) return 'text-moss-deep bg-moss-primary';
+    if (score <= 4) return 'text-moss-primary bg-moss-primary';
+    return 'text-moss-primary bg-moss-primary';
   };
 
   const getStrengthText = (score: number) => {
@@ -113,20 +113,20 @@ const PasswordStrengthIndicator: React.FC<{ password?: string }> = ({ password }
   return (
     <div className="mt-2 space-y-1.5 animate-in fade-in-50 duration-200">
       <div className="flex items-center gap-2">
-        <div className="flex-1 bg-slate-950 border border-slate-800 rounded-full h-1.5 overflow-hidden">
+        <div className="flex-1 bg-moss-light/40 border border-hairline rounded-full h-1.5 overflow-hidden">
           <div
             className={`h-full ${getStrengthColor(strength.score)} transition-all duration-300 rounded-full`}
             style={{ width: `${(strength.score / 5) * 100}%` }}
           />
         </div>
-        <span className="text-[10px] font-semibold text-slate-400 min-w-[55px] text-right">
+        <span className="text-[10px] font-semibold text-ink-muted min-w-[55px] text-right">
           {getStrengthText(strength.score)}
         </span>
       </div>
       {strength.feedback.length > 0 && (
         <div className="grid grid-cols-2 gap-1 pt-1">
           {strength.feedback.map((item, index) => (
-            <div key={index} className="flex items-center gap-1 text-[10px] text-amber-400">
+            <div key={index} className="flex items-center gap-1 text-[10px] text-moss-primary">
               <AlertTriangle className="h-3 w-3" />
               <span>{item}</span>
             </div>
@@ -138,7 +138,6 @@ const PasswordStrengthIndicator: React.FC<{ password?: string }> = ({ password }
 };
 
 import GoogleAuthModal from '../../components/common/GoogleAuthModal';
-import { API_URL } from '../../lib/api';
 
 const Register: React.FC = () => {
   const { register: registerAuth, hydrateSession } = useAuth();
@@ -217,6 +216,14 @@ const Register: React.FC = () => {
       window.history.replaceState({}, document.title, window.location.pathname);
     }
 
+    if (searchParams.get('google_error') === 'verification') {
+      toast.error('Google verification failed', 'We could not verify your Google account. Please try again.');
+      window.history.replaceState({}, document.title, window.location.pathname);
+    } else if (searchParams.get('google_error') === 'disposable') {
+      toast.error('Email not allowed', 'Temporary email addresses cannot be used. Please use your real Google account.');
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+
     if (searchParams.get('oauth') === 'google_success' && !hasProcessedOAuth.current) {
       hasProcessedOAuth.current = true;
       const token = searchParams.get('token');
@@ -240,40 +247,40 @@ const Register: React.FC = () => {
   }, [location.search, navigate, toast, hydrateSession]);
 
   const handleGoogleConnect = () => {
-    window.location.href = `${API_URL}/google/connect`;
+    setIsGoogleModalOpen(true);
   };
 
   return (
     <div className="min-h-[85vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full p-8 rounded-3xl bg-white border border-slate-200 space-y-6 shadow-xl relative overflow-hidden">
+      <div className="max-w-md w-full p-8 rounded-3xl bg-paper-bg border border-hairline space-y-6 shadow-xl relative overflow-hidden">
         
         {/* Top Glow Accent */}
-        <div className="absolute -top-24 -right-24 w-48 h-48 bg-brand-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-brand-accent/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -top-24 -right-24 w-48 h-48 bg-moss-primary/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-moss-primary/10 rounded-full blur-3xl pointer-events-none" />
 
         {/* Header */}
         <div className="text-center space-y-2 relative z-10">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-brand-600 via-indigo-600 to-brand-accent p-0.5 mx-auto shadow-lg shadow-brand-500/10">
-            <div className="w-full h-full bg-slate-100 rounded-[14px] flex items-center justify-center">
-              <UserPlus className="w-7 h-7 text-brand-600" />
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-moss-deep via-moss-primary to-moss-primary p-0.5 mx-auto shadow-lg shadow-moss-primary/15">
+            <div className="w-full h-full bg-paper-bg rounded-[14px] flex items-center justify-center">
+              <UserPlus className="w-7 h-7 text-moss-deep" />
             </div>
           </div>
-          <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">Create TaskHub Account</h2>
-          <p className="text-xs text-slate-600">Join the decentralized human micro-work ecosystem</p>
+          <h2 className="text-2xl font-extrabold text-ink-text tracking-tight">Create TaskHub Account</h2>
+          <p className="text-xs text-ink-muted">Join the decentralized human micro-work ecosystem</p>
         </div>
 
         {/* Mode Switcher Tabs */}
-        <div className="flex bg-slate-100 rounded-xl p-1 border border-slate-200 relative z-10">
+        <div className="flex bg-paper-bg rounded-xl p-1 border border-hairline relative z-10">
           <button
             type="button"
             onClick={() => navigate('/login')}
-            className="flex-1 py-2 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 transition-all"
+            className="flex-1 py-2 rounded-lg text-xs font-semibold text-ink-muted hover:text-ink-text transition-all"
           >
             Login
           </button>
           <button
             type="button"
-            className="flex-1 py-2 rounded-lg text-xs font-bold bg-brand-600 text-white shadow-md transition-all"
+            className="flex-1 py-2 rounded-lg text-xs font-bold bg-moss-deep text-white shadow-md transition-all"
           >
             Sign Up
           </button>
@@ -281,23 +288,23 @@ const Register: React.FC = () => {
 
         {/* Account Role Selection */}
         <div className="space-y-1.5 relative z-10">
-          <label className="block text-xs font-bold text-slate-900">Select Account Type</label>
+          <label className="block text-xs font-bold text-ink-text">Select Account Type</label>
           <div className="grid grid-cols-2 gap-3">
             <button
               type="button"
               onClick={() => setValue('role', 'WORKER')}
               className={`p-3 rounded-2xl border text-left flex items-center gap-3 transition-all ${
                 selectedRole === 'WORKER'
-                  ? 'bg-emerald-50 border-emerald-500 text-emerald-900 shadow-sm ring-2 ring-emerald-500/20'
-                  : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
+                  ? 'bg-moss-sage border-moss-primary text-moss-deep shadow-sm ring-2 ring-moss-primary/20'
+                  : 'bg-paper-bg border-hairline text-ink-text hover:bg-paper-bg'
               }`}
             >
-              <div className={`p-2 rounded-xl ${selectedRole === 'WORKER' ? 'bg-emerald-600 text-white font-bold' : 'bg-slate-200 text-slate-700'}`}>
+              <div className={`p-2 rounded-xl ${selectedRole === 'WORKER' ? 'bg-moss-primary text-white font-bold' : 'bg-moss-light/40 text-ink-text'}`}>
                 <User className="w-4 h-4" />
               </div>
               <div>
-                <span className="text-xs font-bold block text-slate-900">Worker</span>
-                <span className="text-[10px] text-slate-600 font-medium">Earn from tasks</span>
+                <span className="text-xs font-bold block text-ink-text">Worker</span>
+                <span className="text-[10px] text-ink-muted font-medium">Earn from tasks</span>
               </div>
             </button>
 
@@ -306,16 +313,16 @@ const Register: React.FC = () => {
               onClick={() => setValue('role', 'BUSINESS')}
               className={`p-3 rounded-2xl border text-left flex items-center gap-3 transition-all ${
                 selectedRole === 'BUSINESS'
-                  ? 'bg-indigo-50 border-indigo-500 text-indigo-900 shadow-sm ring-2 ring-indigo-500/20'
-                  : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
+                  ? 'bg-moss-sage border-moss-primary text-moss-deep shadow-sm ring-2 ring-moss-primary/20'
+                  : 'bg-paper-bg border-hairline text-ink-text hover:bg-paper-bg'
               }`}
             >
-              <div className={`p-2 rounded-xl ${selectedRole === 'BUSINESS' ? 'bg-indigo-600 text-white font-bold' : 'bg-slate-200 text-slate-700'}`}>
+              <div className={`p-2 rounded-xl ${selectedRole === 'BUSINESS' ? 'bg-moss-deep text-white font-bold' : 'bg-moss-light/40 text-ink-text'}`}>
                 <Briefcase className="w-4 h-4" />
               </div>
               <div>
-                <span className="text-xs font-bold block text-slate-900">Business</span>
-                <span className="text-[10px] text-slate-600 font-medium">Post & verify tasks</span>
+                <span className="text-xs font-bold block text-ink-text">Business</span>
+                <span className="text-[10px] text-ink-muted font-medium">Post & verify tasks</span>
               </div>
             </button>
           </div>
@@ -325,7 +332,7 @@ const Register: React.FC = () => {
         <button
           type="button"
           onClick={handleGoogleConnect}
-          className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl bg-white border border-slate-300 hover:border-slate-400 text-slate-900 text-xs font-semibold transition-all hover:bg-slate-50 relative z-10 shadow-sm"
+          className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl bg-paper-bg border border-moss-sage hover:border-moss-sage text-ink-text text-xs font-semibold transition-all hover:bg-paper-bg relative z-10 shadow-sm"
         >
           <svg className="w-4 h-4" viewBox="0 0 24 24">
             <path
@@ -349,8 +356,8 @@ const Register: React.FC = () => {
         </button>
 
         <div className="relative flex items-center justify-center relative z-10">
-          <div className="border-t border-slate-200 w-full" />
-          <span className="bg-white px-3 text-[10px] uppercase font-bold text-slate-500 absolute">
+          <div className="border-t border-hairline w-full" />
+          <span className="bg-paper-bg px-3 text-[10px] uppercase font-bold text-ink-muted absolute">
             Or fill registration details
           </span>
         </div>
@@ -358,99 +365,99 @@ const Register: React.FC = () => {
         {/* Main Form */}
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 relative z-10">
           <div>
-            <label className="block text-xs font-bold text-slate-900 mb-1.5">Full Name</label>
+            <label className="block text-xs font-bold text-ink-text mb-1.5">Full Name</label>
             <div className="relative">
-              <User className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 z-10 pointer-events-none" />
+              <User className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted z-10 pointer-events-none" />
               <input
                 type="text"
                 {...register('name')}
                 placeholder="Enter your full name"
                 className={cn(
-                  "w-full glass-input !pl-11 !pr-4 py-3 text-xs rounded-xl transition-all text-slate-900 placeholder:text-slate-400 bg-white border-slate-300",
-                  errors.name ? "border-rose-500 focus:ring-rose-500/20" : "border-slate-300"
+                  "w-full glass-input !pl-11 !pr-4 py-3 text-xs rounded-xl transition-all text-ink-text placeholder:text-ink-muted/70 bg-paper-bg border-moss-sage",
+                  errors.name ? "border-moss-deep focus:ring-moss-deep/20" : "border-moss-sage"
                 )}
               />
             </div>
             {errors.name && (
-              <p className="text-[10px] text-rose-500 mt-1 flex items-center gap-1 font-medium">
+              <p className="text-[10px] text-moss-deep mt-1 flex items-center gap-1 font-medium">
                 <AlertTriangle className="w-3 h-3" /> {errors.name.message}
               </p>
             )}
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-900 mb-1.5">Email Address</label>
+            <label className="block text-xs font-bold text-ink-text mb-1.5">Email Address</label>
             <div className="relative">
-              <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 z-10 pointer-events-none" />
+              <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted z-10 pointer-events-none" />
               <input
                 type="email"
                 {...register('email')}
                 placeholder="name@example.com"
                 className={cn(
-                  "w-full glass-input !pl-11 !pr-4 py-3 text-xs rounded-xl transition-all text-slate-900 placeholder:text-slate-400 bg-white border-slate-300",
-                  errors.email ? "border-rose-500 focus:ring-rose-500/20" : "border-slate-300"
+                  "w-full glass-input !pl-11 !pr-4 py-3 text-xs rounded-xl transition-all text-ink-text placeholder:text-ink-muted/70 bg-paper-bg border-moss-sage",
+                  errors.email ? "border-moss-deep focus:ring-moss-deep/20" : "border-moss-sage"
                 )}
               />
             </div>
             {errors.email && (
-              <p className="text-[10px] text-rose-500 mt-1 flex items-center gap-1 font-medium">
+              <p className="text-[10px] text-moss-deep mt-1 flex items-center gap-1 font-medium">
                 <AlertTriangle className="w-3 h-3" /> {errors.email.message}
               </p>
             )}
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-900 mb-1.5">Password</label>
+            <label className="block text-xs font-bold text-ink-text mb-1.5">Password</label>
             <div className="relative">
-              <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 z-10 pointer-events-none" />
+              <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted z-10 pointer-events-none" />
               <input
                 type={showPassword ? "text" : "password"}
                 {...register('password')}
                 placeholder="••••••••"
                 className={cn(
-                  "w-full glass-input !pl-11 !pr-12 py-3 text-xs rounded-xl transition-all text-slate-900 placeholder:text-slate-400 bg-white border-slate-300",
-                  errors.password ? "border-rose-500 focus:ring-rose-500/20" : "border-slate-300"
+                  "w-full glass-input !pl-11 !pr-12 py-3 text-xs rounded-xl transition-all text-ink-text placeholder:text-ink-muted/70 bg-paper-bg border-moss-sage",
+                  errors.password ? "border-moss-deep focus:ring-moss-deep/20" : "border-moss-sage"
                 )}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 transition-colors z-10"
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-ink-muted hover:text-ink-text transition-colors z-10"
               >
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
             <PasswordStrengthIndicator password={watchPassword} />
             {errors.password && (
-              <p className="text-[10px] text-rose-500 mt-1 flex items-center gap-1 font-medium">
+              <p className="text-[10px] text-moss-deep mt-1 flex items-center gap-1 font-medium">
                 <AlertTriangle className="w-3 h-3" /> {errors.password.message}
               </p>
             )}
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-900 mb-1.5">Confirm Password</label>
+            <label className="block text-xs font-bold text-ink-text mb-1.5">Confirm Password</label>
             <div className="relative">
-              <Shield className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 z-10 pointer-events-none" />
+              <Shield className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted z-10 pointer-events-none" />
               <input
                 type={showConfirmPassword ? "text" : "password"}
                 {...register('confirmPassword')}
                 placeholder="••••••••"
                 className={cn(
-                  "w-full glass-input !pl-11 !pr-12 py-3 text-xs rounded-xl transition-all text-slate-900 placeholder:text-slate-400 bg-white border-slate-300",
-                  errors.confirmPassword ? "border-rose-500 focus:ring-rose-500/20" : "border-slate-300"
+                  "w-full glass-input !pl-11 !pr-12 py-3 text-xs rounded-xl transition-all text-ink-text placeholder:text-ink-muted/70 bg-paper-bg border-moss-sage",
+                  errors.confirmPassword ? "border-moss-deep focus:ring-moss-deep/20" : "border-moss-sage"
                 )}
               />
               <button
                 type="button"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 transition-colors z-10"
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-ink-muted hover:text-ink-text transition-colors z-10"
               >
                 {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
             {errors.confirmPassword && (
-              <p className="text-[10px] text-rose-500 mt-1 flex items-center gap-1 font-medium">
+              <p className="text-[10px] text-moss-deep mt-1 flex items-center gap-1 font-medium">
                 <AlertTriangle className="w-3 h-3" /> {errors.confirmPassword.message}
               </p>
             )}
@@ -458,32 +465,32 @@ const Register: React.FC = () => {
 
           {/* Feature 1: Enhanced Business Onboarding — richer company profile */}
           {selectedRole === 'BUSINESS' && (
-            <div className="p-4 rounded-2xl bg-indigo-50/50 border border-indigo-200 space-y-4 animate-in fade-in-50 duration-300">
+            <div className="p-4 rounded-2xl bg-moss-sage/50 border border-moss-sage space-y-4 animate-in fade-in-50 duration-300">
               <div className="flex items-center gap-2">
-                <Layers className="w-4 h-4 text-indigo-600" />
-                <h3 className="text-xs font-extrabold text-indigo-900 uppercase tracking-wider">
+                <Layers className="w-4 h-4 text-moss-deep" />
+                <h3 className="text-xs font-extrabold text-moss-deep uppercase tracking-wider">
                   Company Profile Details
                 </h3>
-                <span className="text-[9px] text-indigo-600 font-bold bg-indigo-100 px-1.5 py-0.5 rounded border border-indigo-200">
+                <span className="text-[9px] text-moss-deep font-bold bg-moss-sage px-1.5 py-0.5 rounded border border-moss-sage">
                   REQUIRED
                 </span>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-900 mb-1.5">
-                  Company Legal / Brand Name <span className="text-rose-500">*</span>
+                <label className="block text-xs font-bold text-ink-text mb-1.5">
+                  Company Legal / Brand Name <span className="text-moss-deep">*</span>
                 </label>
                 <div className="relative">
-                  <Building className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 z-10 pointer-events-none" />
+                  <Building className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted z-10 pointer-events-none" />
                   <input
                     type="text"
                     {...register('companyCompanyName')}
                     placeholder="CyberNet AI Labs Inc."
-                    className="w-full glass-input !pl-11 !pr-4 py-3 text-xs rounded-xl border-slate-300 text-slate-900 placeholder:text-slate-400 bg-white"
+                    className="w-full glass-input !pl-11 !pr-4 py-3 text-xs rounded-xl border-moss-sage text-ink-text placeholder:text-ink-muted/70 bg-paper-bg"
                   />
                 </div>
                 {errors.companyCompanyName && (
-                  <p className="text-[10px] text-rose-500 mt-1 flex items-center gap-1 font-medium">
+                  <p className="text-[10px] text-moss-deep mt-1 flex items-center gap-1 font-medium">
                     <AlertTriangle className="w-3 h-3" /> {errors.companyCompanyName.message}
                   </p>
                 )}
@@ -491,12 +498,12 @@ const Register: React.FC = () => {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-900 mb-1.5">
-                    Industry Type <span className="text-rose-500">*</span>
+                  <label className="block text-xs font-bold text-ink-text mb-1.5">
+                    Industry Type <span className="text-moss-deep">*</span>
                   </label>
                   <select
                     {...register('industryType')}
-                    className="w-full glass-input text-xs rounded-xl border-slate-300 text-slate-900 bg-white"
+                    className="w-full glass-input text-xs rounded-xl border-moss-sage text-ink-text bg-paper-bg"
                   >
                     <option value="">Select industry...</option>
                     {INDUSTRY_TYPES.map((type) => (
@@ -506,21 +513,21 @@ const Register: React.FC = () => {
                     ))}
                   </select>
                   {errors.industryType && (
-                    <p className="text-[10px] text-rose-500 mt-1 flex items-center gap-1 font-medium">
+                    <p className="text-[10px] text-moss-deep mt-1 flex items-center gap-1 font-medium">
                       <AlertTriangle className="w-3 h-3" /> {errors.industryType.message}
                     </p>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-900 mb-1.5">
-                    Team Size <span className="text-rose-500">*</span>
+                  <label className="block text-xs font-bold text-ink-text mb-1.5">
+                    Team Size <span className="text-moss-deep">*</span>
                   </label>
                   <div className="relative">
-                    <Users className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 z-10 pointer-events-none" />
+                    <Users className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted z-10 pointer-events-none" />
                     <select
                       {...register('companySize')}
-                      className="w-full glass-input !pl-11 text-xs rounded-xl border-slate-300 text-slate-900 bg-white"
+                      className="w-full glass-input !pl-11 text-xs rounded-xl border-moss-sage text-ink-text bg-paper-bg"
                     >
                       <option value="">Select team size...</option>
                       {COMPANY_SIZES.map((size) => (
@@ -531,7 +538,7 @@ const Register: React.FC = () => {
                     </select>
                   </div>
                   {errors.companySize && (
-                    <p className="text-[10px] text-rose-500 mt-1 flex items-center gap-1 font-medium">
+                    <p className="text-[10px] text-moss-deep mt-1 flex items-center gap-1 font-medium">
                       <AlertTriangle className="w-3 h-3" /> {errors.companySize.message}
                     </p>
                   )}
@@ -539,28 +546,28 @@ const Register: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-900 mb-1.5">
-                  Company Website URL <span className="text-slate-500 text-[10px] font-normal">(Optional)</span>
+                <label className="block text-xs font-bold text-ink-text mb-1.5">
+                  Company Website URL <span className="text-ink-muted text-[10px] font-normal">(Optional)</span>
                 </label>
                 <div className="relative">
-                  <Globe className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 z-10 pointer-events-none" />
+                  <Globe className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted z-10 pointer-events-none" />
                   <input
                     type="text"
                     {...register('websiteUrl')}
                     placeholder="https://company.com"
-                    className="w-full glass-input !pl-11 !pr-4 py-3 text-xs rounded-xl border-slate-300 text-slate-900 placeholder:text-slate-400 bg-white"
+                    className="w-full glass-input !pl-11 !pr-4 py-3 text-xs rounded-xl border-moss-sage text-ink-text placeholder:text-ink-muted/70 bg-paper-bg"
                   />
                 </div>
                 {errors.websiteUrl && (
-                  <p className="text-[10px] text-rose-500 mt-1 flex items-center gap-1 font-medium">
+                  <p className="text-[10px] text-moss-deep mt-1 flex items-center gap-1 font-medium">
                     <AlertTriangle className="w-3 h-3" /> {errors.websiteUrl.message}
                   </p>
                 )}
               </div>
 
               <div>
-                <span className="block text-xs font-bold text-slate-900 mb-1.5">
-                  Services You Need <span className="text-rose-500">*</span>
+                <span className="block text-xs font-bold text-ink-text mb-1.5">
+                  Services You Need <span className="text-moss-deep">*</span>
                 </span>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {SERVICES_NEEDED.map((service) => {
@@ -570,8 +577,8 @@ const Register: React.FC = () => {
                         key={service}
                         className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-semibold cursor-pointer transition-all ${
                           checked
-                            ? 'bg-indigo-600 border-indigo-600 text-white shadow-sm'
-                            : 'bg-white border-slate-300 text-slate-700 hover:bg-slate-50'
+                            ? 'bg-moss-deep border-moss-primary text-white shadow-sm'
+                            : 'bg-paper-bg border-moss-sage text-ink-text hover:bg-paper-bg'
                         }`}
                       >
                         <input
@@ -585,20 +592,20 @@ const Register: React.FC = () => {
                           }}
                           className="sr-only"
                         />
-                        <CheckCircle2 className={`w-3.5 h-3.5 ${checked ? 'text-white' : 'text-slate-400'}`} />
+                        <CheckCircle2 className={`w-3.5 h-3.5 ${checked ? 'text-white' : 'text-ink-muted'}`} />
                         {service}
                       </label>
                     );
                   })}
                 </div>
                 {errors.servicesNeeded && (
-                  <p className="text-[10px] text-rose-500 mt-1 flex items-center gap-1 font-medium">
+                  <p className="text-[10px] text-moss-deep mt-1 flex items-center gap-1 font-medium">
                     <AlertTriangle className="w-3 h-3" /> {errors.servicesNeeded.message}
                   </p>
                 )}
               </div>
 
-              <p className="text-[10px] text-indigo-700/80 font-medium flex items-center gap-1.5">
+              <p className="text-[10px] text-moss-deep/80 font-medium flex items-center gap-1.5">
                 <Shield className="w-3.5 h-3.5" /> Your business will be reviewed by a TaskHub admin before you can publish tasks.
               </p>
             </div>
@@ -609,21 +616,21 @@ const Register: React.FC = () => {
               <input
                 type="checkbox"
                 {...register('agreeToTerms')}
-                className="w-4 h-4 mt-0.5 rounded border-slate-300 bg-white text-brand-500 focus:ring-brand-500 focus:ring-offset-0"
+                className="w-4 h-4 mt-0.5 rounded border-moss-sage bg-paper-bg text-moss-primary focus:ring-moss-primary focus:ring-offset-0"
               />
-              <span className="text-xs text-slate-700 leading-tight font-medium">
+              <span className="text-xs text-ink-text leading-tight font-medium">
                 I agree to TaskHub's{' '}
-                <a href="#" className="text-brand-accent hover:underline font-semibold">
+                <a href="#" className="text-moss-deep hover:underline font-semibold">
                   Terms of Service
                 </a>{' '}
                 &{' '}
-                <a href="#" className="text-brand-accent hover:underline font-semibold">
+                <a href="#" className="text-moss-deep hover:underline font-semibold">
                   Privacy Policy
                 </a>
               </span>
             </label>
             {errors.agreeToTerms && (
-              <p className="text-[10px] text-rose-500 mt-1 flex items-center gap-1 font-medium">
+              <p className="text-[10px] text-moss-deep mt-1 flex items-center gap-1 font-medium">
                 <AlertTriangle className="w-3 h-3" /> {errors.agreeToTerms.message}
               </p>
             )}
@@ -632,7 +639,7 @@ const Register: React.FC = () => {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full py-3.5 rounded-xl bg-gradient-to-r from-brand-600 via-indigo-600 to-brand-accent hover:opacity-95 text-white font-bold text-xs shadow-xl shadow-brand-500/25 transition-all flex items-center justify-center gap-2"
+            className="w-full py-3.5 rounded-xl bg-gradient-to-r from-moss-deep via-moss-primary to-moss-primary hover:opacity-95 text-white font-bold text-xs shadow-xl shadow-moss-primary/30 transition-all flex items-center justify-center gap-2"
           >
             {isSubmitting ? (
               <>
@@ -646,9 +653,9 @@ const Register: React.FC = () => {
           </button>
         </form>
 
-        <p className="text-center text-xs text-slate-600 relative z-10">
+        <p className="text-center text-xs text-ink-muted relative z-10">
           Already registered?{' '}
-          <Link to="/login" className="text-brand-accent font-semibold hover:underline">
+          <Link to="/login" className="text-moss-deep font-semibold hover:underline">
             Sign in here
           </Link>
         </p>

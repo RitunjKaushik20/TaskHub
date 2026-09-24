@@ -58,6 +58,14 @@ enum SubmissionStatus {
   REJECTED
 }
 
+// Manual payment tracking: TaskHub never moves money. A submission is created
+// with paymentStatus = PENDING and flips to MARKED_PAID once either the Worker
+// (received the manual payment) or the Business (paid it) confirms.
+enum PaymentStatus {
+  PENDING
+  MARKED_PAID
+}
+
 enum ProofType {
   FILE
   LINK
@@ -187,6 +195,11 @@ model Submission {
   rewardAmount    Float
   submittedAt     DateTime         @default(now())
   reviewedAt      DateTime?
+  // Manual off-platform payment tracking (no gateway, no escrow). PENDING until
+  // a Worker/Business confirms they settled the payment manually.
+  paymentStatus   PaymentStatus    @default(PENDING)
+  markedPaidAt    DateTime?
+  markedPaidBy    String?
 
   @@map("submissions")
 }

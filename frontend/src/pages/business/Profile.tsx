@@ -135,24 +135,24 @@ const BusinessProfile: React.FC = () => {
   return (
     <div className="space-y-8 max-w-4xl">
       <div>
-        <h1 className="text-2xl font-extrabold text-slate-900">Business Organization Profile</h1>
-        <p className="text-xs text-slate-600">Manage company branding, administrative contact info, and poster credentials.</p>
+        <h1 className="text-2xl font-extrabold text-ink-text">Business Organization Profile</h1>
+        <p className="text-xs text-ink-muted">Manage company branding, administrative contact info, and poster credentials.</p>
       </div>
 
-      <div className="p-6 sm:p-8 rounded-3xl bg-white border border-slate-200 shadow-sm space-y-6">
+      <div className="p-6 sm:p-8 rounded-3xl bg-paper-bg border border-hairline shadow-sm space-y-6">
         {/* Header Preview */}
-        <div className="flex flex-col sm:flex-row items-center gap-6 pb-6 border-b border-slate-200">
+        <div className="flex flex-col sm:flex-row items-center gap-6 pb-6 border-b border-hairline">
           <div className="relative group">
             <img
               src={avatarUrl || user?.avatarUrl || `https://api.dicebear.com/7.x/identicon/svg?seed=${encodeURIComponent(user?.email || 'business')}`}
               alt="Logo"
-              className="w-24 h-24 rounded-2xl object-cover border-2 border-indigo-500/50 shadow-md bg-white"
+              className="w-24 h-24 rounded-2xl object-cover border-2 border-moss-primary/50 shadow-md bg-paper-bg"
             />
             <button
               type="button"
               onClick={handleGenerateLogo}
               title="Generate New Identicon"
-              className="absolute -bottom-2 -right-2 p-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg transition-all"
+              className="absolute -bottom-2 -right-2 p-2 rounded-xl bg-moss-deep hover:bg-moss-primary text-white shadow-lg transition-all"
             >
               <Sparkles className="w-3.5 h-3.5" />
             </button>
@@ -160,25 +160,25 @@ const BusinessProfile: React.FC = () => {
 
           <div className="space-y-2 text-center sm:text-left flex-1">
             <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
-              <h2 className="text-xl font-bold text-slate-900">{companyName || user?.companyName || user?.name}</h2>
-              <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold flex items-center gap-1">
+              <h2 className="text-xl font-bold text-ink-text">{companyName || user?.companyName || user?.name}</h2>
+              <span className="px-2.5 py-0.5 rounded-full bg-moss-sage text-moss-deep border border-moss-sage text-[10px] font-bold flex items-center gap-1">
                 <ShieldCheck className="w-3 h-3" /> Verified Poster
               </span>
-              <span className="px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 text-[10px] font-bold flex items-center gap-1">
+              <span className="px-2.5 py-0.5 rounded-full bg-moss-sage text-moss-deep border border-moss-sage text-[10px] font-bold flex items-center gap-1">
                 <Briefcase className="w-3 h-3" /> BUSINESS
               </span>
             </div>
 
-            <p className="text-xs text-slate-600 flex items-center justify-center sm:justify-start gap-1">
-              <UserIcon className="w-3.5 h-3.5 text-slate-400" /> Representative: {name || user?.name}
+            <p className="text-xs text-ink-muted flex items-center justify-center sm:justify-start gap-1">
+              <UserIcon className="w-3.5 h-3.5 text-ink-muted" /> Representative: {name || user?.name}
             </p>
 
-            <p className="text-xs text-slate-600 flex items-center justify-center sm:justify-start gap-1">
-              <Mail className="w-3.5 h-3.5 text-slate-400" /> {user?.email}
+            <p className="text-xs text-ink-muted flex items-center justify-center sm:justify-start gap-1">
+              <Mail className="w-3.5 h-3.5 text-ink-muted" /> {user?.email}
             </p>
 
-            <p className="text-[11px] text-slate-500 flex items-center justify-center sm:justify-start gap-1">
-              <Calendar className="w-3.5 h-3.5 text-slate-400" /> Joined TaskHub on {formatDate(user?.createdAt || new Date().toISOString())}
+            <p className="text-[11px] text-ink-muted flex items-center justify-center sm:justify-start gap-1">
+              <Calendar className="w-3.5 h-3.5 text-ink-muted" /> Joined TaskHub on {formatDate(user?.createdAt || new Date().toISOString())}
             </p>
           </div>
         </div>
@@ -188,11 +188,11 @@ const BusinessProfile: React.FC = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             {/* Company / Brand Name */}
             <div>
-              <label className="block text-xs font-bold text-slate-900 mb-1.5">
-                Company / Organization Name <span className="text-rose-500">*</span>
+              <label className="block text-xs font-bold text-ink-text mb-1.5">
+                Company / Organization Name <span className="text-moss-deep">*</span>
               </label>
               <div className="relative">
-                <Building2 className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 z-10 pointer-events-none" />
+                <Building2 className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted z-10 pointer-events-none" />
                 <input
                   type="text"
                   value={companyName}
@@ -206,11 +206,11 @@ const BusinessProfile: React.FC = () => {
 
             {/* Representative Name */}
             <div>
-              <label className="block text-xs font-bold text-slate-900 mb-1.5">
-                Authorized Representative Name <span className="text-rose-500">*</span>
+              <label className="block text-xs font-bold text-ink-text mb-1.5">
+                Authorized Representative Name <span className="text-moss-deep">*</span>
               </label>
               <div className="relative">
-                <UserIcon className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 z-10 pointer-events-none" />
+                <UserIcon className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted z-10 pointer-events-none" />
                 <input
                   type="text"
                   value={name}
@@ -225,23 +225,23 @@ const BusinessProfile: React.FC = () => {
 
           {/* Email Address (Read-Only) */}
           <div>
-            <label className="block text-xs font-bold text-slate-900 mb-1.5">
-              Account Email Address <span className="text-slate-500 text-[10px] font-normal">(Non-editable)</span>
+            <label className="block text-xs font-bold text-ink-text mb-1.5">
+              Account Email Address <span className="text-ink-muted text-[10px] font-normal">(Non-editable)</span>
             </label>
             <div className="relative">
-              <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 z-10 pointer-events-none" />
+              <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted z-10 pointer-events-none" />
               <input
                 type="email"
                 value={user?.email || ''}
                 disabled
-                className="w-full glass-input !pl-11 !pr-4 text-xs opacity-75 bg-slate-50 cursor-not-allowed text-slate-600 border border-slate-200"
+                className="w-full glass-input !pl-11 !pr-4 text-xs opacity-75 bg-paper-bg cursor-not-allowed text-ink-muted border border-hairline"
               />
             </div>
           </div>
 
           {/* Organization Bio */}
           <div>
-            <label className="block text-xs font-bold text-slate-900 mb-1.5">
+            <label className="block text-xs font-bold text-ink-text mb-1.5">
               Company Overview & Project Focus
             </label>
             <div className="relative">
@@ -257,11 +257,11 @@ const BusinessProfile: React.FC = () => {
 
           {/* Target / Required Technical Skills */}
           <div>
-            <label className="block text-xs font-bold text-slate-900 mb-1.5">
-              Primary Task Domain Skills <span className="text-slate-500 text-[10px] font-normal">(Comma-separated)</span>
+            <label className="block text-xs font-bold text-ink-text mb-1.5">
+              Primary Task Domain Skills <span className="text-ink-muted text-[10px] font-normal">(Comma-separated)</span>
             </label>
             <div className="relative">
-              <Wrench className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 z-10 pointer-events-none" />
+              <Wrench className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted z-10 pointer-events-none" />
               <input
                 type="text"
                 value={skills}
@@ -273,37 +273,37 @@ const BusinessProfile: React.FC = () => {
           </div>
 
           {/* Feature 1: Company Profile editor */}
-          <div className="p-5 rounded-2xl bg-indigo-50/50 border border-indigo-200 space-y-4">
+          <div className="p-5 rounded-2xl bg-moss-sage/50 border border-moss-sage space-y-4">
             <div>
-              <h3 className="text-sm font-extrabold text-indigo-900 flex items-center gap-2">
-                <Building2 className="w-4 h-4 text-indigo-600" /> Company Profile Details
+              <h3 className="text-sm font-extrabold text-moss-deep flex items-center gap-2">
+                <Building2 className="w-4 h-4 text-moss-deep" /> Company Profile Details
               </h3>
-              <p className="text-[11px] text-indigo-700/80 font-medium mt-0.5">
+              <p className="text-[11px] text-moss-deep/80 font-medium mt-0.5">
                 Used for admin approval review and shown to workers on the marketplace.
               </p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-bold text-slate-900 mb-1.5">
-                  Legal / Brand Name <span className="text-rose-500">*</span>
+                <label className="block text-xs font-bold text-ink-text mb-1.5">
+                  Legal / Brand Name <span className="text-moss-deep">*</span>
                 </label>
                 <input
                   type="text"
                   value={profileCompanyName}
                   onChange={(e) => setProfileCompanyName(e.target.value)}
                   placeholder="CyberNet AI Labs Inc."
-                  className="w-full glass-input !px-4 text-xs font-semibold bg-white"
+                  className="w-full glass-input !px-4 text-xs font-semibold bg-paper-bg"
                 />
               </div>
               <div>
-                <label className="block text-xs font-bold text-slate-900 mb-1.5">
-                  Industry Type <span className="text-rose-500">*</span>
+                <label className="block text-xs font-bold text-ink-text mb-1.5">
+                  Industry Type <span className="text-moss-deep">*</span>
                 </label>
                 <select
                   value={industryType}
                   onChange={(e) => setIndustryType(e.target.value)}
-                  className="w-full glass-input !px-4 text-xs font-semibold bg-white"
+                  className="w-full glass-input !px-4 text-xs font-semibold bg-paper-bg"
                 >
                   <option value="">Select industry...</option>
                   {INDUSTRY_TYPES.map((t) => (
@@ -312,25 +312,25 @@ const BusinessProfile: React.FC = () => {
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-bold text-slate-900 mb-1.5">
-                  Website URL <span className="text-slate-500 text-[10px] font-normal">(Optional)</span>
+                <label className="block text-xs font-bold text-ink-text mb-1.5">
+                  Website URL <span className="text-ink-muted text-[10px] font-normal">(Optional)</span>
                 </label>
                 <input
                   type="text"
                   value={websiteUrl}
                   onChange={(e) => setWebsiteUrl(e.target.value)}
                   placeholder="https://company.com"
-                  className="w-full glass-input !px-4 text-xs bg-white"
+                  className="w-full glass-input !px-4 text-xs bg-paper-bg"
                 />
               </div>
               <div>
-                <label className="block text-xs font-bold text-slate-900 mb-1.5">
-                  Team Size <span className="text-rose-500">*</span>
+                <label className="block text-xs font-bold text-ink-text mb-1.5">
+                  Team Size <span className="text-moss-deep">*</span>
                 </label>
                 <select
                   value={companySize}
                   onChange={(e) => setCompanySize(e.target.value)}
-                  className="w-full glass-input !px-4 text-xs font-semibold bg-white"
+                  className="w-full glass-input !px-4 text-xs font-semibold bg-paper-bg"
                 >
                   <option value="">Select team size...</option>
                   {COMPANY_SIZES.map((s) => (
@@ -341,7 +341,7 @@ const BusinessProfile: React.FC = () => {
             </div>
 
             <div>
-              <span className="block text-xs font-bold text-slate-900 mb-1.5">Services You Need</span>
+              <span className="block text-xs font-bold text-ink-text mb-1.5">Services You Need</span>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {SERVICES_NEEDED.map((service) => {
                   const checked = servicesNeeded.includes(service);
@@ -351,8 +351,8 @@ const BusinessProfile: React.FC = () => {
                       className={cn(
                         'flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-semibold cursor-pointer transition-all',
                         checked
-                          ? 'bg-indigo-600 border-indigo-600 text-white shadow-sm'
-                          : 'bg-white border-slate-300 text-slate-700 hover:bg-slate-50'
+                          ? 'bg-moss-deep border-moss-primary text-white shadow-sm'
+                          : 'bg-paper-bg border-moss-sage text-ink-text hover:bg-paper-bg'
                       )}
                     >
                       <input
@@ -367,7 +367,7 @@ const BusinessProfile: React.FC = () => {
                         }
                         className="sr-only"
                       />
-                      <CheckCircle2 className={cn('w-3.5 h-3.5', checked ? 'text-white' : 'text-slate-400')} />
+                      <CheckCircle2 className={cn('w-3.5 h-3.5', checked ? 'text-white' : 'text-ink-muted')} />
                       {service}
                     </label>
                   );
@@ -376,29 +376,29 @@ const BusinessProfile: React.FC = () => {
             </div>
 
             {user?.approvalStatus && user.approvalStatus !== 'APPROVED' && (
-              <p className="text-[11px] text-indigo-700/90 font-semibold flex items-center gap-1.5">
+              <p className="text-[11px] text-moss-deep/90 font-semibold flex items-center gap-1.5">
                 <Briefcase className="w-3.5 h-3.5" /> Updating this profile may re-trigger admin review of your account.
               </p>
             )}
             {profileError && (
-              <p className="text-[11px] text-rose-600 font-semibold flex items-center gap-1.5">
+              <p className="text-[11px] text-moss-deep font-semibold flex items-center gap-1.5">
                 <ShieldCheck className="w-3.5 h-3.5" /> {profileError}
               </p>
             )}
           </div>
 
           {/* Live Skill Badges Preview */}
-          <div className="bg-slate-100/80 border border-slate-200 p-4 rounded-2xl space-y-2">
-            <span className="text-slate-700 font-bold text-xs uppercase tracking-wider block">
+          <div className="bg-paper-bg/80 border border-hairline p-4 rounded-2xl space-y-2">
+            <span className="text-ink-text font-bold text-xs uppercase tracking-wider block">
               Skill Badges Preview
             </span>
             <div className="flex flex-wrap gap-2 text-xs">
               {parsedSkills.map((skill) => (
                 <span
                   key={skill}
-                  className="bg-brand-50 border border-brand-200 text-brand-700 font-semibold px-3 py-1.5 rounded-full text-xs flex items-center gap-1.5"
+                  className="bg-moss-sage border border-moss-sage text-moss-deep font-semibold px-3 py-1.5 rounded-full text-xs flex items-center gap-1.5"
                 >
-                  <CheckCircle2 className="w-3.5 h-3.5 text-brand-600" /> {skill}
+                  <CheckCircle2 className="w-3.5 h-3.5 text-moss-deep" /> {skill}
                 </span>
               ))}
             </div>
@@ -409,7 +409,7 @@ const BusinessProfile: React.FC = () => {
             <button
               type="submit"
               disabled={isSaving}
-              className="px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-md transition-all flex items-center gap-2 disabled:opacity-50"
+              className="px-6 py-3 rounded-xl bg-moss-deep hover:bg-moss-deep text-white font-bold text-xs shadow-md transition-all flex items-center gap-2 disabled:opacity-50"
             >
               {isSaving ? (
                 <>

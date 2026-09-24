@@ -12,8 +12,6 @@ import {
   CreditCard,
   BarChart3,
   Users,
-  ShieldCheck,
-  Building2,
   ShieldAlert,
   Settings,
   LogOut,
@@ -71,8 +69,6 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ role }) => {
       { name: 'Business Approvals', path: '/admin/business-approvals', icon: ClipboardCheck },
       { name: 'Task Oversight', path: '/admin/tasks', icon: ListTodo },
       { name: 'Submission Logs', path: '/admin/submissions', icon: CheckCircle2 },
-      { name: 'KYC / Verification', path: '/admin/verification', icon: ShieldCheck },
-      { name: 'Payment Oversight', path: '/admin/payments', icon: Building2 },
       { name: 'Fraud Detection', path: '/admin/fraud', icon: ShieldAlert },
       { name: 'Platform Analytics', path: '/admin/reports', icon: BarChart3 },
       { name: 'Platform Settings', path: '/admin/settings', icon: Settings },
@@ -82,34 +78,34 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ role }) => {
   const navLinks = getNavigationLinks();
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col">
+    <div className="min-h-screen bg-paper-bg text-ink-text flex flex-col">
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar Desktop (Clean Light Theme) */}
-        <aside className="hidden lg:flex flex-col w-64 bg-white border-r border-slate-200/90 p-4 space-y-6 shadow-xs">
+        <aside className="hidden lg:flex flex-col w-64 bg-paper-bg border-r border-hairline/90 p-4 space-y-6 shadow-xs">
           <Link to="/" className="flex items-center gap-2.5 px-2 py-1">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-500 p-0.5 shadow-sm">
-              <div className="w-full h-full bg-white rounded-[10px] flex items-center justify-center">
-                <Layers className="w-5 h-5 text-emerald-600" />
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-moss-primary to-moss-deep p-0.5 shadow-sm">
+              <div className="w-full h-full bg-paper-bg rounded-[10px] flex items-center justify-center">
+                <Layers className="w-5 h-5 text-moss-deep" />
               </div>
             </div>
-            <span className="text-lg font-black text-slate-900 tracking-tight">
-              Task<span className="text-emerald-600">Hub</span>
+            <span className="text-lg font-black text-ink-text tracking-tight">
+              Task<span className="text-moss-deep">Hub</span>
             </span>
           </Link>
 
           {/* User Profile Card */}
           <Link
             to={role === 'BUSINESS' ? '/business/profile' : role === 'WORKER' ? '/worker/profile' : '/admin'}
-            className="p-3 rounded-xl bg-slate-50 border border-slate-200 hover:border-emerald-500/50 transition-all flex items-center gap-3 group shadow-xs"
+            className="p-3 rounded-xl bg-paper-bg border border-hairline hover:border-moss-primary/50 transition-all flex items-center gap-3 group shadow-xs"
           >
             <img
               src={user?.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'}
               alt="Avatar"
-              className="w-10 h-10 rounded-full object-cover border border-emerald-500/30 group-hover:scale-105 transition-transform"
+              className="w-10 h-10 rounded-full object-cover border border-moss-primary/30 group-hover:scale-105 transition-transform"
             />
             <div className="flex-1 min-w-0">
-              <h4 className="text-xs font-bold text-slate-900 truncate group-hover:text-emerald-700 transition-colors">{user?.name}</h4>
-              <p className="text-[10px] font-extrabold text-emerald-600 uppercase tracking-wider">{user?.role}</p>
+              <h4 className="text-xs font-bold text-ink-text truncate group-hover:text-moss-deep transition-colors">{user?.name}</h4>
+              <p className="text-[10px] font-extrabold text-moss-deep uppercase tracking-wider">{user?.role}</p>
             </div>
           </Link>
 
@@ -124,11 +120,11 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ role }) => {
                   to={link.path}
                   className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${
                     isActive
-                      ? 'bg-emerald-600 text-white shadow-sm shadow-emerald-600/20'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                      ? 'bg-moss-primary text-white shadow-sm shadow-moss-primary/25'
+                      : 'text-ink-muted hover:text-ink-text hover:bg-paper-bg'
                   }`}
                 >
-                  <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-400'}`} />
+                  <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-ink-muted'}`} />
                   {link.name}
                 </Link>
               );
@@ -138,25 +134,25 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ role }) => {
           {/* Logout Button */}
           <button
             onClick={handleLogout}
-            className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-xs font-bold text-rose-600 hover:bg-rose-50 transition-colors"
+            className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-xs font-bold text-moss-deep hover:bg-moss-sage/30 transition-colors"
           >
             <LogOut className="w-4 h-4" /> Sign Out
           </button>
         </aside>
 
         {/* Main Content Body */}
-        <div className="flex-1 flex flex-col min-w-0 overflow-y-auto bg-slate-50">
+        <div className="flex-1 flex flex-col min-w-0 overflow-y-auto bg-paper-bg">
           {/* Header Mobile */}
-          <header className="lg:hidden bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between shadow-xs">
+          <header className="lg:hidden bg-paper-bg border-b border-hairline px-4 py-3 flex items-center justify-between shadow-xs">
             <Link to="/" className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center text-white">
+              <div className="w-8 h-8 rounded-lg bg-moss-primary flex items-center justify-center text-white">
                 <Layers className="w-4 h-4" />
               </div>
-              <span className="text-base font-bold text-slate-900">TaskHub ({role})</span>
+              <span className="text-base font-bold text-ink-text">TaskHub ({role})</span>
             </Link>
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="p-2 rounded-lg text-slate-600 hover:text-slate-900"
+              className="p-2 rounded-lg text-ink-muted hover:text-ink-text"
             >
               {sidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
@@ -164,11 +160,11 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ role }) => {
 
           {/* Mobile Drawer */}
           {sidebarOpen && (
-            <div className="lg:hidden bg-white border-b border-slate-200 p-4 space-y-4 shadow-lg">
+            <div className="lg:hidden bg-paper-bg border-b border-hairline p-4 space-y-4 shadow-lg">
               <Link
                 to={role === 'BUSINESS' ? '/business/profile' : role === 'WORKER' ? '/worker/profile' : '/admin'}
                 onClick={() => setSidebarOpen(false)}
-                className="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center gap-3"
+                className="p-3 rounded-xl bg-paper-bg border border-hairline flex items-center gap-3"
               >
                 <img
                   src={user?.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'}
@@ -176,8 +172,8 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ role }) => {
                   className="w-10 h-10 rounded-full object-cover"
                 />
                 <div>
-                  <h4 className="text-xs font-bold text-slate-900">{user?.name}</h4>
-                  <p className="text-[10px] font-bold text-emerald-600 uppercase">{user?.role}</p>
+                  <h4 className="text-xs font-bold text-ink-text">{user?.name}</h4>
+                  <p className="text-[10px] font-bold text-moss-deep uppercase">{user?.role}</p>
                 </div>
               </Link>
 
@@ -187,15 +183,15 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ role }) => {
                     key={link.path}
                     to={link.path}
                     onClick={() => setSidebarOpen(false)}
-                    className="flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-bold text-slate-700 hover:bg-slate-100"
+                    className="flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-bold text-ink-text hover:bg-paper-bg"
                   >
-                    <link.icon className="w-4 h-4 text-slate-500" />
+                    <link.icon className="w-4 h-4 text-ink-muted" />
                     {link.name}
                   </Link>
                 ))}
                 <button
                   onClick={handleLogout}
-                  className="flex items-center gap-3 w-full px-3 py-2 text-xs font-bold text-rose-600 hover:bg-rose-50"
+                  className="flex items-center gap-3 w-full px-3 py-2 text-xs font-bold text-moss-deep hover:bg-moss-sage/30"
                 >
                   <LogOut className="w-4 h-4" /> Sign Out
                 </button>

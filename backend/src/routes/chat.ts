@@ -1,4 +1,5 @@
 import { Router, Response } from 'express';
+import { z } from 'zod';
 import { PrismaClient } from '@prisma/client';
 import { sendSuccess, sendError } from '../utils/response';
 import { requireAuth, AuthenticatedRequest } from '../middleware/auth';
@@ -8,6 +9,12 @@ import { getIO } from '../lib/socket';
 
 const router = Router();
 const prisma = new PrismaClient();
+
+const sendMessageSchema = z.object({
+  message: z.string().trim().max(4000, 'Message must be 4000 characters or fewer').optional(),
+  fileUrl: z.string().trim().max(2000).nullable().optional(),
+  fileName: z.string().trim().max(255).nullable().optional(),
+});
 
 // GET /api/chat/tasks/:taskId
 // Part A (data isolation): business accounts may only read chat rooms for their
@@ -32,7 +39,16 @@ router.get('/tasks/:taskId', requireAuth, requireChatTaskAccess, async (req: Aut
 router.post('/tasks/:taskId', requireAuth, requireChatTaskAccess, requireEmailVerified, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { taskId } = req.params;
-    const { message, fileUrl, fileName } = req.body;
+    const parsed = sendMessageSchema.safeParse(req.body);
+    if (!parsed.success) {
+      const formattedErrors: Record<string, string[]> = {};
+      parsed.error.issues.forEach((issue) => {
+        const field = issue.path.join('.');
+        formattedErrors[field] = [issue.message];
+      });
+      return sendError(res, 'Validation failed', formattedErrors, 400);
+    }
+    const { message, fileUrl, fileName } = parsed.data;
 
     if (!message && !fileUrl) {
       return sendError(res, 'Message text or attachment is required', undefined, 400);

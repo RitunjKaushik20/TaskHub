@@ -178,57 +178,57 @@ const BrowseTasks: React.FC = () => {
     <div className="py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-8">
       {/* Header & Breadcrumb */}
       <div className="space-y-2">
-        <div className="flex items-center gap-2 text-xs text-slate-500">
-          <Link to="/" className="hover:text-emerald-700 transition-colors">
+        <div className="flex items-center gap-2 text-xs text-ink-muted">
+          <Link to="/" className="hover:text-moss-deep transition-colors">
             Home
           </Link>
           <span>/</span>
-          <span className="text-slate-800 font-medium">Marketplace Tasks</span>
+          <span className="text-ink-text font-medium">Marketplace Tasks</span>
           {selectedCategory !== 'ALL' && (
             <>
               <span>/</span>
-              <span className="text-emerald-700 font-bold">{selectedCategory}</span>
+              <span className="text-moss-deep font-bold">{selectedCategory}</span>
             </>
           )}
         </div>
 
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-black text-slate-900 tracking-tight">
+            <h1 className="text-3xl font-black text-ink-text tracking-tight">
               {selectedCategory === 'ALL'
                 ? 'Explore All Micro-Gigs'
                 : selectedCategory}
             </h1>
-            <p className="text-xs text-slate-500 mt-1">
+            <p className="text-xs text-ink-muted mt-1">
               Find verified micro-tasks, RLHF datasets, and technical projects ready for execution.
             </p>
           </div>
 
-          <div className="flex items-center gap-2 text-xs text-slate-600 font-medium">
-            <span className="font-extrabold text-slate-900">{filteredTasks.length}</span>
+          <div className="flex items-center gap-2 text-xs text-ink-muted font-medium">
+            <span className="font-extrabold text-ink-text">{filteredTasks.length}</span>
             <span>services available</span>
           </div>
         </div>
       </div>
 
       {/* Fiverr-Style Multi-Facet Filter & Sorting Bar (Light Theme) */}
-      <div className="p-5 rounded-2xl bg-white border border-slate-200 space-y-4 shadow-sm">
+      <div className="p-5 rounded-2xl bg-paper-bg border border-hairline space-y-4 shadow-sm">
         {/* Top Row: Search + Sort Dropdown */}
         <div className="flex flex-col md:flex-row gap-3 items-center justify-between">
           <div className="relative flex-1 w-full">
-            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 z-10 pointer-events-none" />
+            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted z-10 pointer-events-none" />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search gigs by title, keywords, or required skills..."
-              className="w-full bg-slate-50 border border-slate-300 text-slate-900 placeholder:text-slate-400 text-xs rounded-xl !pl-11 !pr-10 py-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500 transition-all shadow-xs"
+              className="w-full bg-paper-bg border border-moss-sage text-ink-text placeholder:text-ink-muted/70 text-xs rounded-xl !pl-11 !pr-10 py-2.5 focus:outline-none focus:ring-2 focus:ring-moss-primary/40 focus:border-moss-primary transition-all shadow-xs"
             />
             {search && (
               <button
                 type="button"
                 onClick={() => setSearch('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted hover:text-ink-text"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -237,13 +237,13 @@ const BrowseTasks: React.FC = () => {
 
           {/* Sort By Dropdown */}
           <div className="flex items-center gap-2 w-full md:w-auto shrink-0">
-            <span className="text-xs text-slate-600 font-semibold flex items-center gap-1">
-              <ArrowUpDown className="w-3.5 h-3.5 text-emerald-600" /> Sort by:
+            <span className="text-xs text-ink-muted font-semibold flex items-center gap-1">
+              <ArrowUpDown className="w-3.5 h-3.5 text-moss-deep" /> Sort by:
             </span>
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="bg-slate-50 border border-slate-300 text-slate-800 text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-emerald-500 cursor-pointer shadow-xs font-medium"
+              className="bg-paper-bg border border-moss-sage text-ink-text text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-moss-primary cursor-pointer shadow-xs font-medium"
             >
               {SORT_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>
@@ -255,15 +255,15 @@ const BrowseTasks: React.FC = () => {
         </div>
 
         {/* Dropdown Filters Row */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2 border-t border-slate-100">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2 border-t border-moss-sage/60">
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-500 block mb-1">
+            <label className="text-[10px] uppercase font-extrabold text-ink-muted block mb-1">
               Category
             </label>
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-300 text-slate-800 text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-emerald-500 shadow-xs font-medium"
+              className="w-full bg-paper-bg border border-moss-sage text-ink-text text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-moss-primary shadow-xs font-medium"
             >
               {CATEGORIES.map((cat) => (
                 <option key={cat} value={cat}>
@@ -274,13 +274,13 @@ const BrowseTasks: React.FC = () => {
           </div>
 
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-500 block mb-1">
+            <label className="text-[10px] uppercase font-extrabold text-ink-muted block mb-1">
               Difficulty
             </label>
             <select
               value={selectedDifficulty}
               onChange={(e) => setSelectedDifficulty(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-300 text-slate-800 text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-emerald-500 shadow-xs font-medium"
+              className="w-full bg-paper-bg border border-moss-sage text-ink-text text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-moss-primary shadow-xs font-medium"
             >
               {DIFFICULTIES.map((d) => (
                 <option key={d.value} value={d.value}>
@@ -291,13 +291,13 @@ const BrowseTasks: React.FC = () => {
           </div>
 
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-500 block mb-1">
+            <label className="text-[10px] uppercase font-extrabold text-ink-muted block mb-1">
               Budget Range
             </label>
             <select
               value={selectedBudget}
               onChange={(e) => setSelectedBudget(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-300 text-slate-800 text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-emerald-500 shadow-xs font-medium"
+              className="w-full bg-paper-bg border border-moss-sage text-ink-text text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-moss-primary shadow-xs font-medium"
             >
               {BUDGET_RANGES.map((b) => (
                 <option key={b.value} value={b.value}>
@@ -308,13 +308,13 @@ const BrowseTasks: React.FC = () => {
           </div>
 
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-500 block mb-1">
+            <label className="text-[10px] uppercase font-extrabold text-ink-muted block mb-1">
               Currency
             </label>
             <select
               value={selectedCurrency}
               onChange={(e) => setSelectedCurrency(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-300 text-slate-800 text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-emerald-500 shadow-xs font-medium"
+              className="w-full bg-paper-bg border border-moss-sage text-ink-text text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-moss-primary shadow-xs font-medium"
             >
               <option value="ALL">All Currencies</option>
               <option value="INR">Indian Rupee (₹)</option>
@@ -325,42 +325,42 @@ const BrowseTasks: React.FC = () => {
 
         {/* Active Filter Badges */}
         {hasActiveFilters && (
-          <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100 text-xs">
-            <span className="text-slate-500 text-[11px] font-bold">Active Filters:</span>
+          <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-moss-sage/60 text-xs">
+            <span className="text-ink-muted text-[11px] font-bold">Active Filters:</span>
             {selectedCategory !== 'ALL' && (
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[11px] font-semibold">
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-moss-sage text-moss-deep border border-moss-sage text-[11px] font-semibold">
                 {selectedCategory}
                 <button onClick={() => setSelectedCategory('ALL')}>
-                  <X className="w-3 h-3 text-emerald-600" />
+                  <X className="w-3 h-3 text-moss-deep" />
                 </button>
               </span>
             )}
             {selectedDifficulty !== 'ALL' && (
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-purple-50 text-purple-700 border border-purple-200 text-[11px] font-semibold">
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-moss-sage/30 text-moss-deep border border-moss-sage text-[11px] font-semibold">
                 {selectedDifficulty}
                 <button onClick={() => setSelectedDifficulty('ALL')}>
-                  <X className="w-3 h-3 text-purple-600" />
+                  <X className="w-3 h-3 text-moss-deep" />
                 </button>
               </span>
             )}
             {selectedBudget !== 'ALL' && (
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-cyan-50 text-cyan-700 border border-cyan-200 text-[11px] font-semibold">
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-moss-sage/30 text-moss-deep border border-moss-sage text-[11px] font-semibold">
                 {BUDGET_RANGES.find((b) => b.value === selectedBudget)?.label}
                 <button onClick={() => setSelectedBudget('ALL')}>
-                  <X className="w-3 h-3 text-cyan-600" />
+                  <X className="w-3 h-3 text-moss-deep" />
                 </button>
               </span>
             )}
             {selectedCurrency !== 'ALL' && (
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200 text-[11px] font-semibold">
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-moss-sage/30 text-moss-deep border border-moss-sage text-[11px] font-semibold">
                 {selectedCurrency}
                 <button onClick={() => setSelectedCurrency('ALL')}>
-                  <X className="w-3 h-3 text-amber-600" />
+                  <X className="w-3 h-3 text-moss-deep" />
                 </button>
               </span>
             )}
             {search && (
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 text-slate-800 border border-slate-200 text-[11px] font-semibold">
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-paper-bg text-ink-text border border-hairline text-[11px] font-semibold">
                 "{search}"
                 <button onClick={() => setSearch('')}>
                   <X className="w-3 h-3" />
@@ -370,7 +370,7 @@ const BrowseTasks: React.FC = () => {
 
             <button
               onClick={handleClearFilters}
-              className="text-xs text-rose-600 hover:underline flex items-center gap-1 ml-auto font-bold"
+              className="text-xs text-moss-deep hover:underline flex items-center gap-1 ml-auto font-bold"
             >
               <RotateCcw className="w-3 h-3" /> Clear all filters
             </button>
@@ -384,31 +384,31 @@ const BrowseTasks: React.FC = () => {
           {[1, 2, 3, 4, 5, 6].map((i) => (
             <div
               key={i}
-              className="h-80 rounded-2xl bg-white border border-slate-200 animate-pulse"
+              className="h-80 rounded-2xl bg-paper-bg border border-hairline animate-pulse"
             />
           ))}
         </div>
       ) : filteredTasks.length === 0 ? (
-        <div className="p-12 text-center rounded-3xl bg-white border border-slate-200 max-w-lg mx-auto space-y-4 shadow-sm">
-          <div className="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-center mx-auto text-emerald-600">
+        <div className="p-12 text-center rounded-3xl bg-paper-bg border border-hairline max-w-lg mx-auto space-y-4 shadow-sm">
+          <div className="w-12 h-12 rounded-2xl bg-moss-sage border border-moss-sage flex items-center justify-center mx-auto text-moss-deep">
             <Layers className="w-6 h-6" />
           </div>
-          <h3 className="text-lg font-bold text-slate-900">No Matching Gigs Found</h3>
-          <p className="text-xs text-slate-500 leading-relaxed">
+          <h3 className="text-lg font-bold text-ink-text">No Matching Gigs Found</h3>
+          <p className="text-xs text-ink-muted leading-relaxed">
             We couldn't find any tasks matching your selected filters. Try broadening your criteria or reset the filters.
           </p>
           <div className="pt-2 flex items-center justify-center gap-3">
             {hasActiveFilters && (
               <button
                 onClick={handleClearFilters}
-                className="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 text-xs font-bold hover:bg-slate-200"
+                className="px-4 py-2 rounded-xl bg-paper-bg text-ink-text text-xs font-bold hover:bg-moss-light/40"
               >
                 Reset Filters
               </button>
             )}
             <Link
               to="/register"
-              className="inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-emerald-600 text-white text-xs font-bold shadow-md shadow-emerald-600/20"
+              className="inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-moss-primary text-white text-xs font-bold shadow-md shadow-moss-primary/25"
             >
               <PlusCircle className="w-4 h-4" /> Post a Task as Business
             </Link>

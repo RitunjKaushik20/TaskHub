@@ -112,7 +112,7 @@ async function run() {
   }
 
   // 2. Business Flow: Register & Post Task
-  console.log(colors.bold('\n[2/7] Business Flow: Registration, Task Creation & Escrow Deposit'));
+  console.log(colors.bold('\n[2/7] Business Flow: Registration, Approval Gate & Task Creation'));
   const businessEmail = `business_${timestamp}@cybernet.ai`;
   const regBusiness = await request('/api/auth/register', {
     method: 'POST',
@@ -228,38 +228,15 @@ async function run() {
   const taskId = postTask.data.id;
   pass('Task Creation', `Task ID: ${taskId}, Reward: $${postTask.data.reward}`);
 
-  // Razorpay Escrow Deposit Order
-  const rzpOrder = await request('/api/payments/razorpay/create-order', {
-    method: 'POST',
-    token: businessToken,
-    body: {
-      taskId,
-      amount: 100.0, // 2 seats * $50
-      currency: 'USD',
-    },
-  });
-
-  if (!rzpOrder.success || !rzpOrder.data?.orderId) {
-    fail('Razorpay Escrow Order Creation', JSON.stringify(rzpOrder));
+  // No escrow, no payment gateway: an approved business can post a task
+  // directly; funds are settled off-platform and tracked manually.
+  const paymentsProbe = await fetch(`${API_BASE}/api/payments/razorpay/config`);
+  // The legacy Razorpay router should be gone entirely. If anything still
+  // serves a 200 here, the removal regressed.
+  if (paymentsProbe.status === 200) {
+    fail('Payment Gateway Removal', 'Legacy /api/payments route still responds');
   }
-  pass('Razorpay Order Created', `Order ID: ${rzpOrder.data.orderId}, Key: ${rzpOrder.data.keyId}`);
-
-  // Razorpay Escrow Payment Verification
-  const rzpVerify = await request('/api/payments/razorpay/verify', {
-    method: 'POST',
-    token: businessToken,
-    body: {
-      razorpay_order_id: rzpOrder.data.orderId,
-      razorpay_payment_id: `pay_test_${timestamp}`,
-      taskId,
-      amount: 100.0,
-    },
-  });
-
-  if (!rzpVerify.success || !rzpVerify.data?.verified) {
-    fail('Razorpay Escrow Verification', JSON.stringify(rzpVerify));
-  }
-  pass('Razorpay Escrow Verified', `Transaction: ${rzpVerify.data.transactionId}, Status: LOCKED & COMPLETED`);
+  pass('Razorpay Gateway Removed', '/api/payments no longer served');
 
   // 3. Worker Flow: Register, Discover, Claim Task
   console.log(colors.bold('\n[3/7] Worker Flow: Registration, Task Discovery & Seat Locking'));
@@ -281,14 +258,14 @@ async function run() {
   workerToken = workerSession.token;
   pass('Worker Registration', `User: ${regWorker.data.email}`);
 
-  // Check initial worker wallet balance is 0.00
+  // Check initial worker earnings are zero (0.00)
   const initialWallet = await request('/api/wallet/summary', {
     token: workerToken,
   });
-  if (!initialWallet.success || initialWallet.data?.availableBalance !== 0) {
-    fail('Worker Initial Wallet Balance Check', `Expected 0.00, got: ${JSON.stringify(initialWallet)}`);
+  if (!initialWallet.success || initialWallet.data?.totalEarned !== 0 || initialWallet.data?.availableBalance !== 0) {
+    fail('Worker Initial Wallet Check', `Expected 0 totalEarned, got: ${JSON.stringify(initialWallet)}`);
   }
-  pass('Worker Initial Wallet Balance', `Available: $${initialWallet.data.availableBalance.toFixed(2)}`);
+  pass('Worker Initial Earnings', `Total Earned: $${initialWallet.data.totalEarned.toFixed(2)}`);
 
   // Discover tasks
   const tasksList = await request('/api/tasks');
@@ -309,57 +286,8 @@ async function run() {
   }
   pass('Worker Claimed Task Seat', `Status: ${claimTask.data.status}, Workers: ${claimTask.data.assignedWorkersCount}/${claimTask.data.workerLimit}`);
 
-  // 4. Real-Time Chat Verification via Socket.IO
-  console.log(colors.bold('\n[4/7] Real-Time Chat Verification via Socket.IO'));
-  const workerSocket = SocketClient(API_BASE, {
-    transports: ['websocket', 'polling'],
-  });
-
-  await new Promise<void>((resolve, reject) => {
-    const timeout = setTimeout(() => reject(new Error('Socket connection timed out')), 5000);
-    workerSocket.on('connect', () => {
-      clearTimeout(timeout);
-      resolve();
-    });
-  });
-  pass('Worker Socket.IO Connected', `Socket ID: ${workerSocket.id}`);
-
-  // Join task room
-  workerSocket.emit('join-task', taskId);
-  pass('Worker Joined Chat Room', `Room: task:${taskId}`);
-
-  // Prepare listener for incoming message
-  const chatMessageText = `Hello Worker! Thanks for claiming task ${taskId}. Please deliver by tomorrow.`;
-  const receivedMessagePromise = new Promise<any>((resolve, reject) => {
-    const timeout = setTimeout(() => reject(new Error('Did not receive socket message in time')), 7000);
-    workerSocket.on('new-message', (msg: any) => {
-      if (msg.taskId === taskId) {
-        clearTimeout(timeout);
-        resolve(msg);
-      }
-    });
-  });
-
-  // Business sends message via REST API (which broadcasts to Socket.IO room)
-  const sendChatRes = await request(`/api/chat/tasks/${taskId}`, {
-    method: 'POST',
-    token: businessToken,
-    body: { message: chatMessageText },
-  });
-
-  if (!sendChatRes.success) {
-    fail('Send Chat Message', JSON.stringify(sendChatRes));
-  }
-
-  const receivedMsg = await receivedMessagePromise;
-  if (receivedMsg.message !== chatMessageText) {
-    fail('Socket.IO Message Verification', `Expected "${chatMessageText}", got "${receivedMsg.message}"`);
-  }
-  pass('Socket.IO Real-Time Messaging Verified', `Received live broadcast: "${receivedMsg.message.slice(0, 40)}..."`);
-  workerSocket.disconnect();
-
-  // 5. Proof File Upload (/uploads)
-  console.log(colors.bold('\n[5/7] Proof Deliverable File Upload (/uploads)'));
+  // 4. Proof File Upload
+  console.log(colors.bold('\n[4/7] Proof Deliverable File Upload (/uploads)'));
   const sampleProofContent = JSON.stringify({
     annotatedFrames: 300,
     dataset: 'urban_street_01',
@@ -390,8 +318,8 @@ async function run() {
   }
   pass('Static File Delivery Verified', `GET ${uploadedFileUrl} returned 200 OK`);
 
-  // 6. Submit Proof & Escrow Payout
-  console.log(colors.bold('\n[6/7] Proof Submission & Automated Escrow Payout'));
+  // 5. Proof Submission + Real-Time Chat
+  console.log(colors.bold('\n[5/7] Proof Submission & Real-Time Socket.IO Chat'));
   const submitProof = await request('/api/submissions', {
     method: 'POST',
     token: workerToken,
@@ -409,81 +337,217 @@ async function run() {
   const submissionId = submitProof.data.id;
   pass('Proof Submitted to Business', `Submission ID: ${submissionId}, Status: ${submitProof.data.status}`);
 
-  // Business Reviews & Approves Submission
+  // Real-time chat: the worker must connect WITH a valid JWT and may only join
+  // the task room because they now hold a submission on it (membership is
+  // enforced server-side on the socket handshake and on join-task).
+  const workerSocket = SocketClient(API_BASE, {
+    transports: ['websocket', 'polling'],
+    auth: { token: workerToken },
+  });
+
+  await new Promise<void>((resolve, reject) => {
+    const timeout = setTimeout(() => reject(new Error('Socket connection timed out')), 5000);
+    workerSocket.on('connect', () => {
+      clearTimeout(timeout);
+      resolve();
+    });
+    workerSocket.on('connect_error', (err: Error) => {
+      clearTimeout(timeout);
+      reject(new Error(`Socket auth error: ${err.message}`));
+    });
+  });
+  pass('Worker Socket.IO Connected With JWT', `Socket ID: ${workerSocket.id}`);
+
+  const joinedChat = await new Promise<boolean>((resolve) => {
+    workerSocket.emit('join-task', taskId, (result: boolean) => resolve(result));
+    setTimeout(() => resolve(false), 5000);
+  });
+  if (!joinedChat) {
+    fail('Worker Join Chat Room', `join-task ack=false for task ${taskId}`);
+  }
+  pass('Worker Joined Chat Room', `Room: task:${taskId}`);
+
+  const chatMessageText = `Hello Worker! Thanks for delivering ${taskId}. Please respond to any follow-ups.`;
+  const receivedMessagePromise = new Promise<any>((resolve, reject) => {
+    const timeout = setTimeout(() => reject(new Error('Did not receive socket message in time')), 7000);
+    workerSocket.on('new-message', (msg: any) => {
+      if (msg.taskId === taskId) {
+        clearTimeout(timeout);
+        resolve(msg);
+      }
+    });
+  });
+
+  const sendChatRes = await request(`/api/chat/tasks/${taskId}`, {
+    method: 'POST',
+    token: businessToken,
+    body: { message: chatMessageText },
+  });
+
+  if (!sendChatRes.success) {
+    fail('Send Chat Message', JSON.stringify(sendChatRes));
+  }
+
+  const receivedMsg = await receivedMessagePromise;
+  if (receivedMsg.message !== chatMessageText) {
+    fail('Socket.IO Message Verification', `Expected "${chatMessageText}", got "${receivedMsg.message}"`);
+  }
+  pass('Socket.IO Real-Time Messaging Verified', `Received live broadcast: "${receivedMsg.message.slice(0, 40)}..."`);
+  workerSocket.disconnect();
+
+  // 6. Review, Approve, and Manually Mark as Paid
+  console.log(colors.bold('\n[6/7] Approval & Manual Payment Tracking'));
+
+  // Business Reviews & Approves Submission (approval alone moves NO money now)
   const reviewSub = await request(`/api/submissions/${submissionId}/review`, {
     method: 'POST',
     token: businessToken,
     body: {
       status: 'APPROVED',
       qualityScore: 5,
-      feedback: 'Outstanding bounding box accuracy. Escrow reward released!',
+      feedback: 'Outstanding bounding box accuracy. Reward payable on manual settlement.',
     },
   });
 
   if (!reviewSub.success || reviewSub.data?.status !== 'APPROVED') {
     fail('Submission Approval', JSON.stringify(reviewSub));
   }
-  pass('Business Approved Submission', `Score: ${reviewSub.data.qualityScore}/5 stars, Reward: $${reviewSub.data.rewardAmount}`);
+  if (reviewSub.data.paymentStatus !== 'PENDING') {
+    fail('Submission Payment State After Approval', `Expected PENDING, got: ${reviewSub.data.paymentStatus}`);
+  }
+  pass('Business Approved Submission', `Score: ${reviewSub.data.qualityScore}/5 stars, Reward: $${reviewSub.data.rewardAmount} (payment PENDING)`);
 
-  // Verify Automated Escrow Payout into Worker's Wallet
+  // No money should have moved just because it was approved.
+  const postApproveWallet = await request('/api/wallet/summary', {
+    token: workerToken,
+  });
+  if (!postApproveWallet.success || postApproveWallet.data.totalEarned !== 0) {
+    fail('No Auto-Payout on Approval', `Expected totalEarned $0, got: $${postApproveWallet.data?.totalEarned}`);
+  }
+  if (postApproveWallet.data.pendingBalance !== 50.0) {
+    fail('Worker Pending Earnings After Approval', `Expected pendingBalance $50, got: $${postApproveWallet.data?.pendingBalance}`);
+  }
+  pass('Approval Does Not Release Money', `Worker totalEarned $0.00, pending $${postApproveWallet.data.pendingBalance.toFixed(2)}`);
+
+  const businessWalletOpen = await request('/api/wallet/summary', {
+    token: businessToken,
+  });
+  if (!businessWalletOpen.success || businessWalletOpen.data.totalSpending !== 0) {
+    fail('Business Spending Before Payment', `Expected totalSpending $0, got: $${businessWalletOpen.data?.totalSpending}`);
+  }
+  pass('Business Spending Zero Before Mark-as-Paid', `Total Spending: $0.00, pendingPayout: $${businessWalletOpen.data.pendingPayout.toFixed(2)}`);
+
+  // Worker confirms the off-platform payment (worker-side Mark as Paid).
+  const workerMark = await request(`/api/submissions/${submissionId}/mark-paid`, {
+    method: 'POST',
+    token: workerToken,
+  });
+  if (!workerMark.success || workerMark.data?.paymentStatus !== 'MARKED_PAID' || workerMark.data?.alreadyPaid) {
+    fail('Worker Mark as Paid', JSON.stringify(workerMark));
+  }
+  pass('Worker Marked Submission as Paid', `paymentStatus: ${workerMark.data.paymentStatus}`);
+
+  // Business re-marks as paid -> idempotent no-op (no double count).
+  const businessMark = await request(`/api/submissions/${submissionId}/mark-paid`, {
+    method: 'POST',
+    token: businessToken,
+  });
+  if (!businessMark.success || !businessMark.data?.alreadyPaid) {
+    fail('Idempotent Re-Mark as Paid', JSON.stringify(businessMark));
+  }
+  pass('Second Mark-as-Paid is Idempotent No-Op', 'alreadyPaid: true, no duplicate ledger row');
+
+  // Post-payment state: task should be PAID; worker earnings + business spending credited exactly once.
   const fundedWallet = await request('/api/wallet/summary', {
     token: workerToken,
   });
-
-  if (!fundedWallet.success || fundedWallet.data.availableBalance !== 50.0) {
-    fail('Worker Payout Verification', `Expected availableBalance $50.00, got: $${fundedWallet.data?.availableBalance}`);
+  if (!fundedWallet.success || fundedWallet.data.totalEarned !== 50.0) {
+    fail('Worker Earnings After Mark as Paid', `Expected $50.00, got: $${fundedWallet.data?.totalEarned}`);
   }
-  pass('Worker Wallet Escrow Payout Received', `Available Balance: $${fundedWallet.data.availableBalance.toFixed(2)} (+$50.00 reward)`);
+  if (fundedWallet.data.pendingBalance !== 0) {
+    fail('Worker Pending After Payment', `Expected $0.00, got: $${fundedWallet.data?.pendingBalance}`);
+  }
+  pass('Worker Total Earnings Updated', `Total Earned: $${fundedWallet.data.totalEarned.toFixed(2)}, Pending: $${fundedWallet.data.pendingBalance.toFixed(2)}`);
+
+  const businessWalletClosed = await request('/api/wallet/summary', {
+    token: businessToken,
+  });
+  if (!businessWalletClosed.success || businessWalletClosed.data.totalSpending !== 50.0) {
+    fail('Business Spending After Mark as Paid', `Expected $50.00, got: $${businessWalletClosed.data?.totalSpending}`);
+  }
+  pass('Business Total Spending Updated', `Total Spending: $${businessWalletClosed.data.totalSpending.toFixed(2)}`);
+
+  const taskAfterPaid = await request(`/api/tasks/${taskId}`, {
+    token: businessToken,
+  });
+  if (taskAfterPaid.data?.status !== 'PAID') {
+    fail('Task Status After Payment', `Expected PAID, got: ${taskAfterPaid.data?.status}`);
+  }
+  pass('Task Status Advanced to PAID', `Status: ${taskAfterPaid.data.status}`);
 
   const workerTxList = await request('/api/wallet/transactions', {
     token: workerToken,
   });
-
-  const payoutTx = workerTxList.data?.find((tx: any) => tx.type === 'TASK_PAYOUT');
-  if (!payoutTx || payoutTx.amount !== 50.0) {
-    fail('Worker Payout Transaction Log', `Missing or incorrect TASK_PAYOUT transaction: ${JSON.stringify(workerTxList)}`);
+  const payoutTxs = workerTxList.data?.filter((tx: any) => tx.type === 'TASK_PAYOUT') || [];
+  if (payoutTxs.length !== 1 || payoutTxs[0].amount !== 50.0) {
+    fail('Single Payout Ledger Record', `Expected exactly one $50 TASK_PAYOUT, got: ${JSON.stringify(payoutTxs)}`);
   }
-  pass('Automated Transaction Logged', `TX ID: ${payoutTx.id}, Type: ${payoutTx.type}, Amount: +$${payoutTx.amount}`);
+  pass('Manual Payment Logged Exactly Once in Ledger', `TX ID: ${payoutTxs[0].id}, Type: TASK_PAYOUT, Amount: +$${payoutTxs[0].amount}`);
 
-  // 7. Withdrawal Flow
-  console.log(colors.bold('\n[7/7] Worker Payout Withdrawal Flow'));
-  const withdrawAmount = 20.0;
-  const withdrawRes = await request('/api/withdrawals', {
+  // 7. Google OAuth Security Hardening (forged/unsigned tokens must be rejected)
+  // NOTE: a positive Google sign-in can only be verified against a real Google
+  // account (real ID token). The automation below asserts the security boundary:
+  // no client-supplied credential, no unsigned/forged JWT, and no
+  // email/email_verified query param can ever mint a session. Email+OTP flows
+  // that a fresh Google signup goes through are covered in sections 2/3.
+  console.log(colors.bold('\n[7/7] Google OAuth Security: Forged Credentials Rejected'));
+  const forgeB64url = (obj: any) => Buffer.from(JSON.stringify(obj)).toString('base64url');
+  const fakeEmail = `gtest_${timestamp}@cybernet.ai`;
+
+  // 7a. No credential / client-supplied email+name must be rejected outright.
+  const noCredential = await request('/api/auth/google/verify', {
     method: 'POST',
-    token: workerToken,
-    body: {
-      amount: withdrawAmount,
-      method: 'PAYPAL',
-      accountDetails: 'alex.vance@worker.taskhub.io',
-    },
+    body: { email: fakeEmail, name: 'Grace', role: 'WORKER' },
   });
-
-  if (!withdrawRes.success || !withdrawRes.data?.id) {
-    fail('Withdrawal Request', JSON.stringify(withdrawRes));
+  if (noCredential.success !== false || noCredential.data?.token) {
+    fail('Google Verify Must Reject Missing Credential', JSON.stringify(noCredential));
   }
-  const withdrawalId = withdrawRes.data.id;
-  pass('Withdrawal Requested', `ID: ${withdrawalId}, Amount: $${withdrawAmount}, Status: PENDING`);
+  pass('Missing Credential Rejected', 'POST /api/auth/google/verify -> 400, no session issued');
 
-  // Verify Worker Wallet balance deduction
-  const postWithdrawWallet = await request('/api/wallet/summary', {
-    token: workerToken,
+  // 7b. An unsigned (alg:none) forged JWT claiming any verified email must fail
+  // server-side ID-token verification against Google.
+  const forgedCredential =
+    forgeB64url({ alg: 'none', typ: 'JWT' }) +
+    '.' +
+    forgeB64url({ email: fakeEmail, email_verified: true, sub: '12345', name: 'Fake Grace' }) +
+    '.';
+  const forgedVerify = await request('/api/auth/google/verify', {
+    method: 'POST',
+    body: { credential: forgedCredential, role: 'WORKER' },
   });
-
-  const expectedRemaining = 50.0 - withdrawAmount; // $30.00
-  if (!postWithdrawWallet.success || postWithdrawWallet.data.availableBalance !== expectedRemaining) {
-    fail('Wallet Balance Deduction Check', `Expected $${expectedRemaining.toFixed(2)}, got: $${postWithdrawWallet.data?.availableBalance}`);
+  if (forgedVerify.success !== false || forgedVerify.data?.token) {
+    fail('Forged Unsigned Token Must Be Rejected', JSON.stringify(forgedVerify));
   }
-  pass('Wallet Balance Correctly Deducted', `Remaining Available: $${postWithdrawWallet.data.availableBalance.toFixed(2)}, Total Withdrawn: $${postWithdrawWallet.data.totalWithdrawn.toFixed(2)}`);
+  pass('Forged alg=none Token Rejected', 'token never passes Google tokeninfo verification');
 
-  // Verify Withdrawal transaction logged
-  const postWithdrawTxList = await request('/api/wallet/transactions', {
-    token: workerToken,
-  });
-  const withdrawTx = postWithdrawTxList.data?.find((tx: any) => tx.type === 'WITHDRAWAL');
-  if (!withdrawTx || withdrawTx.amount !== withdrawAmount) {
-    fail('Withdrawal Transaction Log', 'Missing WITHDRAWAL transaction');
+  // 7c. /api/google/connect must not trust email/email_verified query params —
+  // with no real `credential`, it must redirect back to the GIS flow with NO token.
+  const connectRes = await fetch(
+    `${API_BASE}/api/google/connect?email=${encodeURIComponent(`fakeadmin_${timestamp}@taskhub.io`)}&email_verified=true&role=ADMIN`,
+    { redirect: 'manual' }
+  );
+  const connectLocation = connectRes.headers.get('location') || '';
+  if (connectRes.status !== 302 || connectLocation.includes('token=')) {
+    fail('Google Connect Must Not Trust Query Params', `status=${connectRes.status}, location=${connectLocation}`);
   }
-  pass('Withdrawal Transaction Logged in Ledger', `TX ID: ${withdrawTx.id}, Type: WITHDRAWAL, Amount: -$${withdrawTx.amount}`);
+  pass('google/connect Ignores email_verified Query Param', 'Redirect goes back to the GIS flow, no token issued');
+
+  // 7d. The GIS client ID is exposed for the real OAuth button.
+  const oauthConfig = await request('/api/auth/google/config');
+  if (!oauthConfig.success || !oauthConfig.data?.clientId) {
+    fail('Google OAuth Config', JSON.stringify(oauthConfig));
+  }
+  pass('OAuth Client ID Exposed for GIS Button', `clientId: ${String(oauthConfig.data.clientId).slice(0, 24)}...`);
 
   console.log(colors.green('\n======================================================'));
   console.log(colors.bold(colors.green('  ✔ ALL END-TO-END VERIFICATION CHECKS PASSED 100%!')));

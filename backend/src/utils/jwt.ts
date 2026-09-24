@@ -1,8 +1,21 @@
 import jwt from 'jsonwebtoken';
 import { Response } from 'express';
 
-const ACCESS_SECRET = process.env.JWT_ACCESS_SECRET || 'taskhub_access_secret_super_secure_key_2026';
-const REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'taskhub_refresh_secret_super_secure_key_2026';
+// Secrets MUST come from the environment. Hardcoded fallbacks would bake a
+// known secret into the binary and silently ship it to production if an env var
+// is ever missing — so we fail loudly at startup instead.
+function requireSecret(name: string): string {
+  const value = process.env[name];
+  if (!value) {
+    throw new Error(
+      `${name} must be set (backend/.env). Refusing to start with fallback secrets.`
+    );
+  }
+  return value;
+}
+
+const ACCESS_SECRET = requireSecret('JWT_ACCESS_SECRET');
+const REFRESH_SECRET = requireSecret('JWT_REFRESH_SECRET');
 
 export interface TokenPayload {
   userId: string;
@@ -20,7 +33,7 @@ export function signRefreshToken(payload: TokenPayload): string {
 
 export function verifyAccessToken(token: string): TokenPayload | null {
   try {
-    return jwt.verify(token, ACCESS_SECRET) as TokenPayload;
+    return jwt.verify(token, ACCESS_SECRET) as unknown as TokenPayload;
   } catch {
     return null;
   }
@@ -28,7 +41,7 @@ export function verifyAccessToken(token: string): TokenPayload | null {
 
 export function verifyRefreshToken(token: string): TokenPayload | null {
   try {
-    return jwt.verify(token, REFRESH_SECRET) as TokenPayload;
+    return jwt.verify(token, REFRESH_SECRET) as unknown as TokenPayload;
   } catch {
     return null;
   }

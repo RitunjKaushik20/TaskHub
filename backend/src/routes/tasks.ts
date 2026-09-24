@@ -1,4 +1,5 @@
 import { Router, Response } from 'express';
+import { z } from 'zod';
 import { PrismaClient } from '@prisma/client';
 import { sendSuccess, sendError } from '../utils/response';
 import { requireAuth, requireRoles, AuthenticatedRequest } from '../middleware/auth';
@@ -8,6 +9,41 @@ import { requireEmailVerified } from '../middleware/emailVerified';
 
 const router = Router();
 const prisma = new PrismaClient();
+
+// Server-side validation for published task batches. Limits keep stored content
+// bounded and drop malformed payloads with a clean 400 (never a 500).
+const createTaskSchema = z.object({
+  title: z.string().trim().min(5, 'Title must be at least 5 characters').max(150, 'Title must be 150 characters or fewer'),
+  description: z.string().trim().min(10, 'Description must be at least 10 characters').max(5000, 'Description must be 5000 characters or fewer'),
+  instructions: z.string().trim().min(5, 'Instructions must be at least 5 characters').max(10000, 'Instructions must be 10000 characters or fewer'),
+  category: z.string().trim().min(2, 'Category is required').max(80),
+  difficulty: z.enum(['BEGINNER', 'INTERMEDIATE', 'ADVANCED', 'EXPERT']).default('BEGINNER'),
+  reward: z.number().min(0.5, 'Reward must be at least $0.50').max(100000, 'Reward is unreasonably high').or(z.coerce.number().min(0.5).max(100000)),
+  currency: z.enum(['USD', 'INR']).default('USD'),
+  workerLimit: z.coerce.number().int('Worker limit must be a whole number').min(1, 'Worker limit must be at least 1').max(1000, 'Worker limit too high'),
+  deadline: z.string().refine((v) => !Number.isNaN(new Date(v).getTime()) && new Date(v).getTime() > Date.now(), {
+    message: 'Deadline must be a valid future date',
+  }),
+  requiredSkills: z.array(z.string().trim().min(1).max(40)).min(1, 'Add at least one required skill').max(30),
+  proofRequirements: z.string().trim().min(1, 'Proof requirements are required').max(2000, 'Proof requirements must be 2000 characters or fewer'),
+});
+
+// Status updates must be a valid TaskStatus enum value. Arbitrary strings
+// previously slipped through to Prisma and surfaced as a generic 500.
+const taskStatusSchema = z.object({
+  status: z.enum([
+    'AVAILABLE',
+    'ASSIGNED',
+    'IN_PROGRESS',
+    'SUBMITTED',
+    'UNDER_REVIEW',
+    'APPROVED',
+    'REJECTED',
+    'PAID',
+    'COMPLETED',
+    'CANCELLED',
+  ]),
+});
 
 // GET /api/tasks
 router.get('/', async (req: AuthenticatedRequest, res: Response) => {
@@ -140,6 +176,16 @@ router.get('/:id', async (req: AuthenticatedRequest, res: Response) => {
 // Part B: publishing also requires a verified email.
 router.post('/', requireAuth, requireRoles(['BUSINESS', 'ADMIN']), requireApprovedBusiness, requireEmailVerified, async (req: AuthenticatedRequest, res: Response) => {
   try {
+    const parsed = createTaskSchema.safeParse(req.body);
+    if (!parsed.success) {
+      const formattedErrors: Record<string, string[]> = {};
+      parsed.error.issues.forEach((issue) => {
+        const field = issue.path.join('.');
+        formattedErrors[field] = [issue.message];
+      });
+      return sendError(res, 'Validation failed', formattedErrors, 400);
+    }
+
     const {
       title,
       description,
@@ -152,7 +198,7 @@ router.post('/', requireAuth, requireRoles(['BUSINESS', 'ADMIN']), requireApprov
       deadline,
       requiredSkills,
       proofRequirements,
-    } = req.body;
+    } = parsed.data;
 
     const task = await prisma.task.create({
       data: {
@@ -160,12 +206,12 @@ router.post('/', requireAuth, requireRoles(['BUSINESS', 'ADMIN']), requireApprov
         description,
         instructions,
         category,
-        difficulty: difficulty || 'BEGINNER',
-        reward: Number(reward),
+        difficulty,
+        reward,
         currency: currency === 'INR' ? 'INR' : 'USD',
-        workerLimit: Number(workerLimit) || 1,
+        workerLimit,
         deadline: new Date(deadline),
-        requiredSkills: Array.isArray(requiredSkills) ? JSON.stringify(requiredSkills) : JSON.stringify([requiredSkills]),
+        requiredSkills: JSON.stringify(requiredSkills),
         proofRequirements,
         businessId: req.user!.userId,
         status: 'AVAILABLE',
@@ -229,7 +275,11 @@ router.post('/:id/accept', requireAuth, requireRoles(['WORKER', 'ADMIN']), requi
 router.patch('/:id/status', requireAuth, requireApprovedBusiness, requireBusinessTaskOwner, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { id } = req.params;
-    const { status } = req.body;
+    const parsed = taskStatusSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return sendError(res, 'Invalid task status', undefined, 400);
+    }
+    const { status } = parsed.data;
 
     const updated = await prisma.task.update({
       where: { id },

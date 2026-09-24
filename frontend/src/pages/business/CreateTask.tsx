@@ -78,25 +78,25 @@ const CreateTask: React.FC = () => {
   return (
     <div className="space-y-8 max-w-4xl">
       <div>
-        <h1 className="text-2xl font-extrabold text-slate-900">Post New Task Batch</h1>
-        <p className="text-xs text-slate-600">
+        <h1 className="text-2xl font-extrabold text-ink-text">Post New Task Batch</h1>
+        <p className="text-xs text-ink-muted">
           Define worker task specs, direct reward per worker, seat limits, and required proof formats.
         </p>
       </div>
 
-      <div className="p-8 rounded-3xl bg-white border border-slate-200 shadow-sm space-y-6">
+      <div className="p-8 rounded-3xl bg-paper-bg border border-hairline shadow-sm space-y-6">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
           <Field label="Task Title" required error={errors.title?.message}>
             <InputControl
               {...register('title')}
               placeholder="e.g. UX Feedback & Usability Review for Mobile App"
-              className="bg-white border border-slate-300"
+              className="bg-paper-bg border border-moss-sage"
             />
           </Field>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Field label="Category" required error={errors.category?.message}>
-              <SelectControl {...register('category')} className="bg-white border border-slate-300">
+              <SelectControl {...register('category')} className="bg-paper-bg border border-moss-sage">
                 <option value="AI & Data Annotation">AI & Data Annotation</option>
                 <option value="UX Research">UX Research</option>
                 <option value="Translation & Localization">Translation & Localization</option>
@@ -106,7 +106,7 @@ const CreateTask: React.FC = () => {
             </Field>
 
             <Field label="Difficulty Level">
-              <SelectControl {...register('difficulty')} className="bg-white border border-slate-300">
+              <SelectControl {...register('difficulty')} className="bg-paper-bg border border-moss-sage">
                 <option value="BEGINNER">Beginner</option>
                 <option value="INTERMEDIATE">Intermediate</option>
                 <option value="ADVANCED">Advanced</option>
@@ -116,17 +116,17 @@ const CreateTask: React.FC = () => {
           </div>
 
           {/* Currency selection & reward fields */}
-          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 space-y-4">
+          <div className="bg-paper-bg border border-hairline rounded-2xl p-5 space-y-4">
             <div>
-              <label className="block text-slate-800 font-bold text-xs mb-1.5">Reward Currency</label>
+              <label className="block text-ink-text font-bold text-xs mb-1.5">Reward Currency</label>
               <div className="grid grid-cols-2 gap-3 max-w-xs">
                 <button
                   type="button"
                   onClick={() => setValue('currency', 'USD')}
                   className={`py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 border ${
                     watchCurrency === 'USD'
-                      ? 'bg-brand-600 border-brand-600 text-white shadow-md'
-                      : 'bg-white border border-slate-300 text-slate-700 font-semibold hover:bg-slate-100'
+                      ? 'bg-moss-deep border-moss-primary text-white shadow-md'
+                      : 'bg-paper-bg border border-moss-sage text-ink-text font-semibold hover:bg-paper-bg'
                   }`}
                 >
                   <DollarSign className="w-3.5 h-3.5" /> US Dollars ($)
@@ -136,8 +136,8 @@ const CreateTask: React.FC = () => {
                   onClick={() => setValue('currency', 'INR')}
                   className={`py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 border ${
                     watchCurrency === 'INR'
-                      ? 'bg-emerald-600 border-emerald-600 text-white shadow-md'
-                      : 'bg-white border border-slate-300 text-slate-700 font-semibold hover:bg-slate-100'
+                      ? 'bg-moss-primary border-moss-primary text-white shadow-md'
+                      : 'bg-paper-bg border border-moss-sage text-ink-text font-semibold hover:bg-paper-bg'
                   }`}
                 >
                   <span className="font-extrabold text-xs">₹</span> Indian Rupees (₹)
@@ -147,47 +147,47 @@ const CreateTask: React.FC = () => {
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
-                <label className="block text-slate-800 font-bold text-xs mb-1.5">
+                <label className="block text-ink-text font-bold text-xs mb-1.5">
                   Reward per Worker ({watchCurrency === 'INR' ? '₹' : '$'})
                 </label>
                 <div className="relative">
                   {watchCurrency === 'INR' ? (
-                    <span className="text-xs font-bold text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none z-10">₹</span>
+                    <span className="text-xs font-bold text-ink-muted absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none z-10">₹</span>
                   ) : (
-                    <DollarSign className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none z-10" />
+                    <DollarSign className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none z-10" />
                   )}
                   <InputControl
                     type="number"
                     step={watchCurrency === 'INR' ? '1' : '0.50'}
                     {...register('reward', { valueAsNumber: true })}
                     placeholder={watchCurrency === 'INR' ? '500' : '25.00'}
-                    className="!pl-11 !pr-4 bg-white border-slate-300 font-bold"
+                    className="!pl-11 !pr-4 bg-paper-bg border-moss-sage font-bold"
                     style={{ paddingLeft: '2.75rem' }}
                   />
                 </div>
-                {errors.reward && <p className="text-[10px] text-rose-500 mt-1">{errors.reward.message}</p>}
+                {errors.reward && <p className="text-[10px] text-moss-deep mt-1">{errors.reward.message}</p>}
               </div>
 
               <div>
-                <label className="block text-slate-800 font-bold text-xs mb-1.5">Worker Seat Limit</label>
+                <label className="block text-ink-text font-bold text-xs mb-1.5">Worker Seat Limit</label>
                 <div className="relative">
-                  <Users className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none z-10" />
+                  <Users className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none z-10" />
                   <InputControl
                     type="number"
                     {...register('workerLimit', { valueAsNumber: true })}
                     placeholder="10"
-                    className="!pl-11 !pr-4 bg-white border-slate-300"
+                    className="!pl-11 !pr-4 bg-paper-bg border-moss-sage"
                     style={{ paddingLeft: '2.75rem' }}
                   />
                 </div>
-                {errors.workerLimit && <p className="text-[10px] text-rose-500 mt-1">{errors.workerLimit.message}</p>}
+                {errors.workerLimit && <p className="text-[10px] text-moss-deep mt-1">{errors.workerLimit.message}</p>}
               </div>
 
               <Field label="Deadline Date" required error={errors.deadline?.message}>
                 <InputControl
                   type="date"
                   {...register('deadline')}
-                  className="bg-white border border-slate-300"
+                  className="bg-paper-bg border border-moss-sage"
                 />
               </Field>
             </div>
@@ -198,7 +198,7 @@ const CreateTask: React.FC = () => {
               rows={2}
               {...register('description')}
               placeholder="High level overview of what workers will execute..."
-              className="bg-white border border-slate-300"
+              className="bg-paper-bg border border-moss-sage"
             />
           </Field>
 
@@ -207,7 +207,7 @@ const CreateTask: React.FC = () => {
               rows={4}
               {...register('instructions')}
               placeholder={'1. Access portal link...\n2. Complete test case...\n3. Export deliverable...'}
-              className="bg-white border border-slate-300"
+              className="bg-paper-bg border border-moss-sage"
             />
           </Field>
 
@@ -216,7 +216,7 @@ const CreateTask: React.FC = () => {
               <InputControl
                 {...register('requiredSkills')}
                 placeholder="Python, Loom, React"
-                className="bg-white border border-slate-300"
+                className="bg-paper-bg border border-moss-sage"
               />
             </Field>
 
@@ -224,16 +224,16 @@ const CreateTask: React.FC = () => {
               <InputControl
                 {...register('proofRequirements')}
                 placeholder="Loom URL link or Markdown text summary"
-                className="bg-white border border-slate-300"
+                className="bg-paper-bg border border-moss-sage"
               />
             </Field>
           </div>
 
-          <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between text-xs">
-            <span className="text-slate-700 font-semibold flex items-center gap-2">
-              <ShieldCheck className="w-4 h-4 text-emerald-600" /> Total Allocated Reward:
+          <div className="p-4 rounded-xl bg-paper-bg border border-hairline flex items-center justify-between text-xs">
+            <span className="text-ink-text font-semibold flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4 text-moss-deep" /> Total Allocated Reward:
             </span>
-            <span className="text-base font-extrabold text-emerald-700">{formatCurrency(totalAllocatedReward, watchCurrency)}</span>
+            <span className="text-base font-extrabold text-moss-deep">{formatCurrency(totalAllocatedReward, watchCurrency)}</span>
           </div>
 
           <Button

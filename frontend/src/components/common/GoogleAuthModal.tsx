@@ -1,9 +1,20 @@
-import React, { useState } from 'react';
-import { X, User as UserIcon, ArrowRight, Loader2, Mail, Shield, Briefcase, Wrench } from 'lucide-react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { X, Loader2, Mail, Shield, Briefcase, Wrench, AlertTriangle } from 'lucide-react';
 import { authApi } from '../../api/auth';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { useNavigate } from 'react-router-dom';
+
+// Google Identity Services (GIS) — real "Sign in with Google" flow.
+//
+// The button is rendered by Google's own script and yields an ID token
+// (credential) bound to the logged-in Google session. That token is sent to
+// TaskHub where it is verified server-side (signature, issuer, audience,
+// expiry via Google's tokeninfo endpoint). The client NEVER submits an email
+// or name of its own choosing to authenticate — those fields are rejected by
+// the hardened /auth/google/verify endpoint.
+
+const GIS_SCRIPT_SRC = 'https://accounts.google.com/gsi/client';
 
 interface GoogleAuthModalProps {
   isOpen: boolean;
@@ -33,43 +44,84 @@ export const GoogleIcon: React.FC<{ className?: string }> = ({ className = 'w-5 
   </svg>
 );
 
+const loadGisScript = (): Promise<void> =>
+  new Promise((resolve, reject) => {
+    if ((window as any).google?.accounts?.id) return resolve();
+
+    const waitForGoogle = () => {
+      const deadline = Date.now() + 8000;
+      const poll = () => {
+        if ((window as any).google?.accounts?.id) return resolve();
+        if (Date.now() > deadline) return reject(new Error('Google Identity Services did not initialize.'));
+        setTimeout(poll, 100);
+      };
+      poll();
+    };
+
+    const existing = document.querySelector(`script[src="${GIS_SCRIPT_SRC}"]`) as HTMLScriptElement | null;
+    if (existing) {
+      existing.addEventListener('load', waitForGoogle);
+      existing.addEventListener('error', () => reject(new Error('Failed to load Google Identity Services')));
+      waitForGoogle();
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.src = GIS_SCRIPT_SRC;
+    script.async = true;
+    script.defer = true;
+    script.onload = waitForGoogle;
+    script.onerror = () => reject(new Error('Failed to load Google Identity Services'));
+    document.head.appendChild(script);
+  });
+
 const GoogleAuthModal: React.FC<GoogleAuthModalProps> = ({
   isOpen,
   onClose,
   redirectTo,
   defaultRole = 'WORKER',
 }) => {
-  const [email, setEmail] = useState('');
-  const [name, setName] = useState('');
   const [role, setRole] = useState<'WORKER' | 'BUSINESS'>(defaultRole);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [gisError, setGisError] = useState('');
   const { hydrateSession } = useAuth();
   const toast = useToast();
   const navigate = useNavigate();
+  const buttonRef = useRef<HTMLDivElement>(null);
+  const roleRef = useRef(role);
 
-  if (!isOpen) return null;
+  useEffect(() => {
+    roleRef.current = role;
+  }, [role]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    const cleanEmail = email.trim().toLowerCase();
-
-    if (!cleanEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
-      setError('Please enter a valid Google email address (e.g. user@gmail.com)');
+  const handleCredential = useCallback(async (response: { credential?: string }) => {
+    const credential = response?.credential;
+    if (!credential) {
+      setError('No Google credential received. Please try again.');
       return;
     }
 
+    setError('');
     setIsSubmitting(true);
     try {
-      const displayName = name.trim() || cleanEmail.split('@')[0];
-      const res = await authApi.googleVerify({
-        email: cleanEmail,
-        name: displayName,
-        role,
-      });
+      const selectedRole = roleRef.current;
+      const res = await authApi.googleVerify({ credential, role: selectedRole });
 
       if (res.success && res.data) {
+        if (res.data.pendingEmailVerification) {
+          localStorage.removeItem('token');
+          localStorage.removeItem('access_token');
+          (window as any).__pendingRole = selectedRole;
+          toast.info(
+            'Verify Your Email',
+            `We sent a 6-digit verification code to ${res.data.email}. Enter it to finish setting up your account.`
+          );
+          onClose();
+          navigate(`/verify-email?email=${encodeURIComponent(res.data.email)}&role=${selectedRole}`, { replace: true });
+          return;
+        }
+
         if ((res.data as any).token) {
           localStorage.setItem('token', (res.data as any).token);
           localStorage.setItem('access_token', (res.data as any).token);
@@ -91,44 +143,95 @@ const GoogleAuthModal: React.FC<GoogleAuthModalProps> = ({
     } finally {
       setIsSubmitting(false);
     }
-  };
+  }, [hydrateSession, navigate, onClose, redirectTo, toast]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    let cancelled = false;
+    setGisError('');
+    setError('');
+
+    const bootstrap = async () => {
+      try {
+        const config = await authApi.googleConfig();
+        const clientId = (config as any)?.data?.clientId;
+        if (cancelled) return;
+        if (!clientId || typeof clientId !== 'string') {
+          setGisError('Google sign-in is not configured on this server yet. Please use email & password.');
+          return;
+        }
+
+        await loadGisScript();
+        if (cancelled) return;
+
+        const google = (window as any).google;
+        google.accounts.id.initialize({
+          client_id: clientId,
+          callback: handleCredential,
+          ux_mode: 'popup',
+        });
+
+        if (buttonRef.current) {
+          buttonRef.current.innerHTML = '';
+          google.accounts.id.renderButton(buttonRef.current, {
+            theme: 'outline',
+            size: 'large',
+            text: 'continue_with',
+            shape: 'pill',
+            width: Math.min(buttonRef.current.clientWidth || 320, 340),
+          });
+        }
+      } catch (err: any) {
+        if (!cancelled) {
+          setGisError(err?.message || 'Google sign-in is temporarily unavailable. Please use email & password.');
+        }
+      }
+    };
+
+    bootstrap();
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen, handleCredential]);
+
+  if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="relative w-full max-w-md p-6 sm:p-8 bg-white border border-slate-200 rounded-3xl shadow-2xl space-y-5 text-slate-800">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-moss-deep/60 animate-in fade-in duration-200">
+      <div className="relative w-full max-w-md p-6 sm:p-8 bg-paper-bg border border-hairline rounded-3xl shadow-2xl space-y-5 text-ink-text">
         {/* Close Button */}
         <button
           onClick={onClose}
           type="button"
-          className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-700 rounded-full bg-slate-100 hover:bg-slate-200 transition-colors"
+          className="absolute top-4 right-4 p-2 text-ink-muted hover:text-ink-text rounded-full bg-paper-bg hover:bg-moss-light/40 transition-colors"
         >
           <X className="w-4 h-4" />
         </button>
 
         {/* Google Header */}
         <div className="text-center space-y-2 pt-2">
-          <div className="w-14 h-14 mx-auto rounded-2xl bg-white border border-slate-200 flex items-center justify-center shadow-md p-2">
+          <div className="w-14 h-14 mx-auto rounded-2xl bg-paper-bg border border-hairline flex items-center justify-center shadow-md p-2">
             <GoogleIcon className="w-8 h-8" />
           </div>
-          <h2 className="text-xl font-bold text-slate-900 tracking-tight">Sign in with Google</h2>
-          <p className="text-xs text-slate-600">
-            Authenticate your Google profile to enter <span className="text-brand-600 font-semibold">TaskHub</span>
+          <h2 className="text-xl font-bold text-ink-text tracking-tight">Sign in with Google</h2>
+          <p className="text-xs text-ink-muted">
+            Authenticate your Google profile to enter <span className="text-moss-deep font-semibold">TaskHub</span>
           </p>
         </div>
 
         {/* Role Toggle */}
         <div>
-          <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+          <label className="block text-[11px] font-bold text-ink-text uppercase tracking-wider mb-1.5">
             Select Account Role
           </label>
-          <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200">
+          <div className="flex bg-paper-bg p-1 rounded-xl border border-hairline">
             <button
               type="button"
               onClick={() => setRole('WORKER')}
               className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition-all ${
                 role === 'WORKER'
-                  ? 'bg-brand-600 text-white shadow-md'
-                  : 'text-slate-600 hover:text-slate-900'
+                  ? 'bg-moss-deep text-white shadow-md'
+                  : 'text-ink-muted hover:text-ink-text'
               }`}
             >
               <Wrench className="w-3.5 h-3.5" /> Worker
@@ -138,8 +241,8 @@ const GoogleAuthModal: React.FC<GoogleAuthModalProps> = ({
               onClick={() => setRole('BUSINESS')}
               className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition-all ${
                 role === 'BUSINESS'
-                  ? 'bg-brand-600 text-white shadow-md'
-                  : 'text-slate-600 hover:text-slate-900'
+                  ? 'bg-moss-deep text-white shadow-md'
+                  : 'text-ink-muted hover:text-ink-text'
               }`}
             >
               <Briefcase className="w-3.5 h-3.5" /> Business
@@ -147,85 +250,48 @@ const GoogleAuthModal: React.FC<GoogleAuthModalProps> = ({
           </div>
         </div>
 
-        {/* Dynamic Google Account Form */}
-        <form onSubmit={handleSubmit} className="space-y-4 pt-1">
-          <div>
-            <label className="block text-xs font-bold text-slate-900 mb-1.5">
-              Google Email Address <span className="text-rose-500">*</span>
-            </label>
-            <div className="relative">
-              <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 z-10 pointer-events-none" />
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value);
-                  setError('');
-                }}
-                placeholder="your.email@gmail.com"
-                required
-                autoFocus
-                className="w-full glass-input !pl-11 !pr-4 py-3 text-xs rounded-xl bg-white border-slate-300 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 text-slate-900 placeholder:text-slate-400 transition-all outline-none"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-bold text-slate-900 mb-1.5">
-              Google Profile Name <span className="text-slate-500 text-[10px] font-normal">(Optional)</span>
-            </label>
-            <div className="relative">
-              <UserIcon className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 z-10 pointer-events-none" />
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Your Full Name"
-                className="w-full glass-input !pl-11 !pr-4 py-3 text-xs rounded-xl bg-white border-slate-300 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 text-slate-900 placeholder:text-slate-400 transition-all outline-none"
-              />
-            </div>
+        {/* Real Google Identity Services button */}
+        <div className="space-y-3 pt-1">
+          <div className="flex items-center justify-center min-h-[44px]">
+            {isSubmitting ? (
+              <span className="flex items-center gap-2 text-xs text-ink-muted">
+                <Loader2 className="w-4 h-4 animate-spin text-moss-deep" />
+                Verifying Google account…
+              </span>
+            ) : (
+              <div ref={buttonRef} className="w-full flex justify-center" />
+            )}
           </div>
 
           {error && (
-            <p className="text-xs text-rose-600 bg-rose-50 border border-rose-200 p-2.5 rounded-xl font-medium animate-in fade-in-50">
+            <p className="text-xs text-moss-deep bg-moss-sage/30 border border-moss-sage p-2.5 rounded-xl font-medium animate-in fade-in-50">
               {error}
             </p>
           )}
 
-          <div className="flex gap-2 pt-2">
+          {gisError && (
+            <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 p-2.5 rounded-xl font-medium flex items-start gap-2">
+              <AlertTriangle className="w-3.5 h-3.5 mt-0.5 shrink-0" />
+              <span>{gisError}</span>
+            </p>
+          )}
+
+          <div className="flex gap-2 pt-1">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-all"
+              className="flex-1 py-3 rounded-xl bg-paper-bg hover:bg-moss-light/40 text-ink-text text-xs font-semibold transition-all"
             >
               Cancel
             </button>
-            <button
-              type="submit"
-              disabled={isSubmitting || !email.trim()}
-              className="flex-1 py-3 rounded-xl bg-slate-900 hover:bg-slate-800 disabled:opacity-50 text-white text-xs font-bold shadow-md transition-all flex items-center justify-center gap-2"
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin text-white" />
-                  <span>Connecting Google Account...</span>
-                </>
-              ) : (
-                <>
-                  <GoogleIcon className="w-4 h-4" />
-                  <span>Continue with Google</span>
-                  <ArrowRight className="w-4 h-4 text-slate-300" />
-                </>
-              )}
-            </button>
           </div>
-        </form>
+        </div>
 
-        <div className="pt-2 border-t border-slate-200 space-y-1.5 text-center">
-          <p className="text-[10px] text-slate-500 flex items-center justify-center gap-1">
-            <Shield className="w-3.5 h-3.5 text-emerald-600" /> Google OAuth 2.0 & End-to-End Direct Payout Security
+        <div className="pt-2 border-t border-hairline space-y-1.5 text-center">
+          <p className="text-[10px] text-ink-muted flex items-center justify-center gap-1">
+            <Shield className="w-3.5 h-3.5 text-moss-deep" /> Google OAuth 2.0 & End-to-End Direct Payout Security
           </p>
-          <p className="text-[10px] text-slate-400 flex items-center justify-center gap-1">
+          <p className="text-[10px] text-ink-muted flex items-center justify-center gap-1">
             <Mail className="w-3 h-3" /> Only verified Google accounts with non-temporary email addresses can sign in.
           </p>
         </div>

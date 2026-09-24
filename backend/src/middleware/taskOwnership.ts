@@ -70,8 +70,10 @@ export async function requireBusinessSubmissionOwner(
   }
 }
 
-// Chat rooms are visible to workers (any worker assigned to a task may chat),
-// but business accounts may only open chat rooms for their OWN task batches.
+// Chat access rule: the owning business (or ADMIN) may open their own task
+// rooms; a WORKER may only access chat for tasks they are actually engaged in —
+// i.e. they hold a submission on that task. This closes the data-isolation gap
+// where any worker could read/post in ANY task's conversation.
 export async function requireChatTaskAccess(
   req: AuthenticatedRequest,
   res: Response,
@@ -92,6 +94,21 @@ export async function requireChatTaskAccess(
         undefined,
         403
       );
+    }
+
+    if (req.user!.role === 'WORKER') {
+      const submission = await prisma.submission.findFirst({
+        where: { taskId, workerId: req.user!.userId },
+        select: { id: true },
+      });
+      if (!submission) {
+        return sendError(
+          res,
+          'Forbidden: You are not assigned to this task. Access denied.',
+          undefined,
+          403
+        );
+      }
     }
 
     next();

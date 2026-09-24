@@ -30,8 +30,8 @@ const FAQ: React.FC = () => {
   return (
     <div className="py-12 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto space-y-8">
       <div className="text-center space-y-3">
-        <h1 className="text-4xl font-extrabold text-white">Frequently Asked Questions</h1>
-        <p className="text-slate-400 text-sm">
+        <h1 className="text-4xl font-extrabold text-ink-text">Frequently Asked Questions</h1>
+        <p className="text-ink-muted text-sm">
           Everything you need to know about task payouts, payment security, and role permissions.
         </p>
       </div>
@@ -42,17 +42,17 @@ const FAQ: React.FC = () => {
           return (
             <div
               key={index}
-              className="p-5 rounded-2xl glass-panel border border-slate-800 transition-all cursor-pointer"
+              className="p-5 rounded-2xl glass-panel border border-hairline transition-all cursor-pointer"
               onClick={() => setOpenIndex(isOpen ? null : index)}
             >
               <div className="flex items-center justify-between">
-                <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                  <HelpCircle className="w-4 h-4 text-brand-accent" /> {faq.q}
+                <h3 className="text-sm font-bold text-ink-text flex items-center gap-2">
+                  <HelpCircle className="w-4 h-4 text-moss-deep" /> {faq.q}
                 </h3>
-                <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`w-4 h-4 text-ink-muted transition-transform ${isOpen ? 'rotate-180' : ''}`} />
               </div>
               {isOpen && (
-                <p className="mt-3 text-xs text-slate-300 leading-relaxed pl-6 border-l border-brand-500/30">
+                <p className="mt-3 text-xs text-ink-muted leading-relaxed pl-6 border-l border-moss-primary/30">
                   {faq.a}
                 </p>
               )}

@@ -4,12 +4,12 @@ import { cn } from '../../lib/utils';
 type BadgeColor = 'emerald' | 'indigo' | 'cyan' | 'amber' | 'rose' | 'slate';
 
 const COLORS: Record<BadgeColor, string> = {
-  emerald: 'bg-emerald-50 text-emerald-700 border border-emerald-200',
-  indigo: 'bg-indigo-50 text-indigo-700 border border-indigo-200',
-  cyan: 'bg-cyan-50 text-cyan-700 border border-cyan-200',
-  amber: 'bg-amber-50 text-amber-700 border border-amber-200',
-  rose: 'bg-rose-50 text-rose-700 border border-rose-200',
-  slate: 'bg-slate-100 text-slate-700 border border-slate-200',
+  emerald: 'bg-moss-sage text-moss-deep border border-moss-sage',
+  indigo: 'bg-moss-sage text-moss-deep border border-moss-sage',
+  cyan: 'bg-moss-sage/30 text-moss-deep border border-moss-sage',
+  amber: 'bg-moss-sage/30 text-moss-deep border border-moss-sage',
+  rose: 'bg-moss-sage/30 text-moss-deep border border-moss-sage',
+  slate: 'bg-paper-bg text-ink-text border border-hairline',
 };
 
 interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {

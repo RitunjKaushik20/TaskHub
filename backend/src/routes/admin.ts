@@ -1,4 +1,5 @@
 import { Router, Response, Request } from 'express';
+import { z } from 'zod';
 import { PrismaClient } from '@prisma/client';
 import { sendSuccess, sendError } from '../utils/response';
 import { requireAuth, requireRoles, AuthenticatedRequest } from '../middleware/auth';
@@ -10,6 +11,10 @@ const prisma = new PrismaClient();
 router.use(requireAuth, requireRoles(['ADMIN']));
 
 const APPROVAL_STATUS = ['PENDING', 'APPROVED', 'REJECTED', 'SUSPENDED'] as const;
+
+const userStatusSchema = z.object({
+  status: z.enum(['ACTIVE', 'SUSPENDED', 'FROZEN']),
+});
 
 // GET /api/admin/users
 router.get('/users', async (req: AuthenticatedRequest, res: Response) => {
@@ -45,7 +50,11 @@ router.get('/users', async (req: AuthenticatedRequest, res: Response) => {
 router.patch('/users/:id/status', async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { id } = req.params;
-    const { status } = req.body;
+    const parsed = userStatusSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return sendError(res, 'Invalid user status', undefined, 400);
+    }
+    const { status } = parsed.data;
 
     const user = await prisma.user.update({
       where: { id },
@@ -258,94 +267,6 @@ router.get('/submissions', async (req: AuthenticatedRequest, res: Response) => {
   }
 });
 
-// GET /api/admin/verification
-router.get('/verification', async (req: AuthenticatedRequest, res: Response) => {
-  try {
-    const queue = await prisma.user.findMany({
-      where: { kycStatus: 'PENDING' },
-    });
-
-    return sendSuccess(res, 'Verification queue fetched', queue);
-  } catch (error: any) {
-    return sendError(res, error?.message || 'Failed to fetch verification queue', undefined, 500);
-  }
-});
-
-// GET /api/admin/withdrawals
-router.get('/withdrawals', async (req: AuthenticatedRequest, res: Response) => {
-  try {
-    const withdrawals = await prisma.withdrawalRequest.findMany({
-      include: { worker: { select: { name: true, email: true } } },
-      orderBy: { createdAt: 'desc' },
-    });
-
-    const formatted = withdrawals.map((w) => ({
-      ...w,
-      workerName: w.worker.name,
-      workerEmail: w.worker.email,
-    }));
-
-    return sendSuccess(res, 'Withdrawal processing queue fetched', formatted);
-  } catch (error: any) {
-    return sendError(res, error?.message || 'Failed to fetch withdrawal queue', undefined, 500);
-  }
-});
-
-// POST /api/admin/withdrawals/:id/process
-router.post('/withdrawals/:id/process', async (req: AuthenticatedRequest, res: Response) => {
-  try {
-    const { id } = req.params;
-    const { action } = req.body; // 'APPROVE' | 'REJECT'
-
-    const withdrawal = await prisma.withdrawalRequest.update({
-      where: { id },
-      data: {
-        status: action === 'APPROVE' ? 'COMPLETED' : 'REJECTED',
-        processedAt: new Date(),
-      },
-      include: { worker: { select: { name: true, email: true } } },
-    });
-
-    // Update associated transaction
-    const tx = await prisma.transaction.findFirst({
-      where: { referenceId: id, type: 'WITHDRAWAL' },
-    });
-
-    if (tx) {
-      await prisma.transaction.update({
-        where: { id: tx.id },
-        data: {
-          status: action === 'APPROVE' ? 'COMPLETED' : 'FAILED',
-        },
-      });
-    }
-
-    // If REJECTED, refund the worker's wallet
-    if (action === 'REJECT') {
-      const wallet = await prisma.wallet.findUnique({
-        where: { userId: withdrawal.workerId },
-      });
-      if (wallet) {
-        await prisma.wallet.update({
-          where: { id: wallet.id },
-          data: {
-            availableBalance: wallet.availableBalance + withdrawal.amount,
-            totalWithdrawn: Math.max(0, wallet.totalWithdrawn - withdrawal.amount),
-          },
-        });
-      }
-    }
-
-    return sendSuccess(res, `Withdrawal ${action === 'APPROVE' ? 'approved' : 'rejected'}`, {
-      ...withdrawal,
-      workerName: withdrawal.worker.name,
-      workerEmail: withdrawal.worker.email,
-    });
-  } catch (error: any) {
-    return sendError(res, error?.message || 'Failed to process withdrawal', undefined, 500);
-  }
-});
-
 // GET /api/admin/audit-logs
 router.get('/audit-logs', async (req: AuthenticatedRequest, res: Response) => {
   try {
@@ -366,25 +287,20 @@ router.get('/audit-logs', async (req: AuthenticatedRequest, res: Response) => {
 // cache, no hardcoded figures). The Overview page consumes this and refreshes
 // via Socket.IO (`dashboard:update`) whenever an event moves a number:
 //   • workers/businesses register            -> auth register
-//   • a business funds escrow (task budget)  -> payments verify (DEPOSIT_ESCROW)
-//   • a payout is released to a worker       -> submissions approve (TASK_PAYOUT)
+//   • a submission is marked as paid         -> submissions mark-paid
+// No money moves through the platform: totalGmv and payoutsSettled are both
+// computed live from MARKED_PAID submissions, so they can never drift.
 // Empty-platform reads return a true zero-state ($0 / 0 / 0 registered / no
 // activity) rather than fabricated growth numbers.
 router.get('/dashboard-stats', async (req: AuthenticatedRequest, res: Response) => {
   try {
-    // Escrow-locked GMV = every COMPLETED DEPOSIT_ESCROW (task budget funded
-    // and locked on the platform). This is the real, settled GMV.
-    const gmvAgg = await prisma.transaction.aggregate({
-      where: { type: 'DEPOSIT_ESCROW', status: 'COMPLETED' },
-      _sum: { amount: true },
+    // Settled GMV = every submission confirmed as paid (reward delivered to the
+    // worker). Approvals alone don't count — only MARKED_PAID does.
+    const settledAgg = await prisma.submission.aggregate({
+      where: { paymentStatus: 'MARKED_PAID' },
+      _sum: { rewardAmount: true },
     });
-
-    // Direct settlements = every COMPLETED TASK_PAYOUT actually released to a
-    // worker's wallet.
-    const payoutAgg = await prisma.transaction.aggregate({
-      where: { type: 'TASK_PAYOUT', status: 'COMPLETED' },
-      _sum: { amount: true },
-    });
+    const gmv = settledAgg._sum.rewardAmount || 0;
 
     const [activeWorkers, activeBusinesses, usersForGrowth] = await Promise.all([
       prisma.user.count({ where: { role: 'WORKER', status: 'ACTIVE' } }),
@@ -396,10 +312,13 @@ router.get('/dashboard-stats', async (req: AuthenticatedRequest, res: Response) 
     ]);
 
     // Real platform health signal: the most recent DB write across the
-    // transactional tables (escrows, payouts, tasks, registrations). A null
-    // value (nothing has ever been written) renders as "No activity yet".
-    const lastTx = await prisma.transaction.aggregate({
-      _max: { createdAt: true },
+    // transactional tables (payments, tasks, registrations). A null value
+    // (nothing has ever been written) renders as "No activity yet".
+    const lastSettled = await prisma.submission.aggregate({
+      _max: { markedPaidAt: true },
+    });
+    const lastSubmission = await prisma.submission.aggregate({
+      _max: { submittedAt: true },
     });
     const lastTask = await prisma.task.aggregate({
       _max: { createdAt: true },
@@ -407,7 +326,12 @@ router.get('/dashboard-stats', async (req: AuthenticatedRequest, res: Response) 
     const lastUser = await prisma.user.aggregate({
       _max: { createdAt: true },
     });
-    const lastDbWriteAt = [lastTx._max.createdAt, lastTask._max.createdAt, lastUser._max.createdAt]
+    const lastDbWriteAt = [
+      lastSettled._max.markedPaidAt,
+      lastSubmission._max.submittedAt,
+      lastTask._max.createdAt,
+      lastUser._max.createdAt,
+    ]
       .filter((d): d is Date => Boolean(d))
       .sort((a, b) => b.getTime() - a.getTime())[0] || null;
 
@@ -436,8 +360,8 @@ router.get('/dashboard-stats', async (req: AuthenticatedRequest, res: Response) 
       .map((b) => ({ month: b.label, workers: b.workers, businesses: b.businesses }));
 
     return sendSuccess(res, 'Admin dashboard stats fetched', {
-      totalGmv: gmvAgg._sum.amount || 0,
-      payoutsSettled: payoutAgg._sum.amount || 0,
+      totalGmv: gmv,
+      payoutsSettled: gmv,
       activeWorkersCount: activeWorkers,
       activeBusinessesCount: activeBusinesses,
       platformHealth: {

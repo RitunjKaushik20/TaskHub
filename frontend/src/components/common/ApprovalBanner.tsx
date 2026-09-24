@@ -11,27 +11,27 @@ const STATUS_META: Record<
     label: 'Business Account Pending Approval',
     description:
       'Your business account is under review by a TaskHub admin. You will be able to publish tasks once your account is approved.',
-    classes: 'bg-amber-50 border-amber-200 text-amber-800',
+    classes: 'bg-moss-sage/30 border-moss-sage text-moss-deep',
     icon: <Hourglass className="w-4 h-4" />,
   },
   REJECTED: {
     label: 'Business Account Rejected',
     description:
       'Your business account was not approved. Contact support if you believe this is a mistake.',
-    classes: 'bg-rose-50 border-rose-200 text-rose-800',
+    classes: 'bg-moss-sage/30 border-moss-sage text-moss-deep',
     icon: <XCircle className="w-4 h-4" />,
   },
   SUSPENDED: {
     label: 'Business Account Suspended',
     description:
       'Your business account has been suspended. Task publishing is disabled until this is resolved.',
-    classes: 'bg-rose-50 border-rose-200 text-rose-800',
+    classes: 'bg-moss-sage/30 border-moss-sage text-moss-deep',
     icon: <Ban className="w-4 h-4" />,
   },
   APPROVED: {
     label: 'Business Account Approved',
     description: 'Your business account is approved and ready to publish tasks.',
-    classes: 'bg-emerald-50 border-emerald-200 text-emerald-800',
+    classes: 'bg-moss-sage border-moss-sage text-moss-deep',
     icon: <CheckCircle2 className="w-4 h-4" />,
   },
 };

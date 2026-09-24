@@ -33,41 +33,41 @@ export function formatDate(dateString: string): string {
 export function getTaskStatusDetails(status: TaskStatus) {
   switch (status) {
     case 'AVAILABLE':
-      return { label: 'Available', color: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' };
+      return { label: 'Available', color: 'bg-moss-primary/10 text-moss-deep border-moss-primary/30' };
     case 'ASSIGNED':
-      return { label: 'Assigned', color: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/30' };
+      return { label: 'Assigned', color: 'bg-moss-sage text-moss-deep border-moss-sage' };
     case 'IN_PROGRESS':
-      return { label: 'In Progress', color: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/30' };
+      return { label: 'In Progress', color: 'bg-moss-sage text-moss-deep border-moss-sage' };
     case 'SUBMITTED':
-      return { label: 'Submitted', color: 'bg-purple-500/10 text-purple-400 border-purple-500/30' };
+      return { label: 'Submitted', color: 'bg-moss-sage text-moss-deep border-moss-sage' };
     case 'UNDER_REVIEW':
-      return { label: 'Under Review', color: 'bg-amber-500/10 text-amber-400 border-amber-500/30' };
+      return { label: 'Under Review', color: 'bg-moss-sage/30 text-moss-deep border-moss-sage' };
     case 'APPROVED':
-      return { label: 'Approved', color: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' };
+      return { label: 'Approved', color: 'bg-moss-primary/10 text-moss-deep border-moss-primary/30' };
     case 'REJECTED':
-      return { label: 'Rejected', color: 'bg-rose-500/10 text-rose-400 border-rose-500/30' };
+      return { label: 'Rejected', color: 'bg-moss-sage/30 text-moss-deep border-moss-deep/30' };
     case 'PAID':
-      return { label: 'Paid Out', color: 'bg-blue-500/10 text-blue-400 border-blue-500/30' };
+      return { label: 'Paid Out', color: 'bg-moss-sage text-moss-deep border-moss-sage' };
     case 'COMPLETED':
-      return { label: 'Completed', color: 'bg-slate-500/10 text-slate-300 border-slate-500/30' };
+      return { label: 'Completed', color: 'bg-moss-sage text-ink-text border-moss-sage' };
     case 'CANCELLED':
-      return { label: 'Cancelled', color: 'bg-rose-500/10 text-rose-400 border-rose-500/30' };
+      return { label: 'Cancelled', color: 'bg-moss-sage/30 text-moss-deep border-moss-deep/30' };
     default:
-      return { label: status, color: 'bg-slate-500/10 text-slate-400 border-slate-500/30' };
+      return { label: status, color: 'bg-moss-sage text-ink-text border-moss-sage' };
   }
 }
 
 export function getSubmissionStatusDetails(status: SubmissionStatus) {
   switch (status) {
     case 'PENDING':
-      return { label: 'Pending Review', color: 'bg-amber-500/10 text-amber-400 border-amber-500/30' };
+      return { label: 'Pending Review', color: 'bg-moss-sage/30 text-moss-deep border-moss-sage' };
     case 'UNDER_REVIEW':
-      return { label: 'Under Review', color: 'bg-purple-500/10 text-purple-400 border-purple-500/30' };
+      return { label: 'Under Review', color: 'bg-moss-sage text-moss-deep border-moss-sage' };
     case 'APPROVED':
-      return { label: 'Approved', color: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' };
+      return { label: 'Approved', color: 'bg-moss-primary/10 text-moss-deep border-moss-primary/30' };
     case 'REJECTED':
-      return { label: 'Rejected', color: 'bg-rose-500/10 text-rose-400 border-rose-500/30' };
+      return { label: 'Rejected', color: 'bg-moss-sage/30 text-moss-deep border-moss-deep/30' };
     default:
-      return { label: status, color: 'bg-slate-500/10 text-slate-400 border-slate-500/30' };
+      return { label: status, color: 'bg-moss-sage text-ink-text border-moss-sage' };
   }
 }

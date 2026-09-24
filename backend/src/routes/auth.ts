@@ -17,11 +17,18 @@ import { companyProfileSchema, isCompleteCompanyProfile } from '../config/compan
 import { isDisposableEmail } from '../config/disposableEmails';
 import { isValidEmailFormat, hasMxRecords, extractDomain } from '../config/emailValidation';
 import { sendEmail, buildOtpEmail, isSmtpConfigured, SendEmailResult } from '../lib/email';
+import { verifyGoogleIdToken } from '../lib/googleAuth';
 import {
   otpSendLimiter,
   otpVerifyLimiter,
+  loginLimiter,
+  registerLimiter,
   OTP_SEND_MAX,
   OTP_SEND_WINDOW_MS,
+  LOGIN_MAX,
+  LOGIN_WINDOW_MS,
+  REGISTER_MAX,
+  REGISTER_WINDOW_MS,
 } from '../lib/rateLimit';
 
 const router = Router();
@@ -31,13 +38,13 @@ const OTP_TTL_MS = 10 * 60 * 1000; // 10 minutes
 const OTP_MAX_ATTEMPTS = 5;
 
 const registerSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters'),
+  name: z.string().min(2, 'Name must be at least 2 characters').max(80, 'Name must be 80 characters or fewer'),
   email: z.string().email('Invalid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
+  password: z.string().min(6, 'Password must be at least 6 characters').max(128, 'Password must be 128 characters or fewer'),
   role: z.enum(['WORKER', 'BUSINESS'], {
     errorMap: () => ({ message: 'Role must be WORKER or BUSINESS' }),
   }),
-  companyName: z.string().optional().nullable(),
+  companyName: z.string().max(120).optional().nullable(),
   // Feature 1: richer company profile captured for Business signups.
   companyProfile: z.any().optional(),
 });
@@ -61,8 +68,9 @@ function generateOtp(): string {
 }
 
 // Every unverified-account OTP distribution path funnels through here so the
-// rate limits and logging rules are applied exactly once.
-async function sendVerificationOtp(res: Response, ip: string, user: { id: string; email: string }): Promise<{ sent: boolean; mode?: SendEmailResult['mode']; reason?: 'rate-limited' }> {
+// rate limits and logging rules are applied exactly once. Exported so the
+// Google OAuth connect handler issues OTPs through the same funnel.
+export async function sendVerificationOtp(res: Response, ip: string, user: { id: string; email: string }): Promise<{ sent: boolean; mode?: SendEmailResult['mode']; reason?: 'rate-limited' }> {
   const now = Date.now();
   if (!otpSendLimiter.allow(`email:${user.email}`, OTP_SEND_MAX, OTP_SEND_WINDOW_MS) ||
       !otpSendLimiter.allow(`ip:${ip}`, OTP_SEND_MAX, OTP_SEND_WINDOW_MS)) {
@@ -97,6 +105,22 @@ async function sendVerificationOtp(res: Response, ip: string, user: { id: string
 // POST /api/auth/register
 router.post('/register', async (req: AuthenticatedRequest, res: Response) => {
   try {
+    // Registration spam guard (shared IP + email bucket per window).
+    const registerIpKey = `ip:${req.ip || 'unknown'}`;
+    if (
+      !registerLimiter.allow(registerIpKey, REGISTER_MAX, REGISTER_WINDOW_MS) ||
+      (req.body?.email &&
+        typeof req.body.email === 'string' &&
+        !registerLimiter.allow(`email:${req.body.email.toLowerCase().trim()}`, 3, REGISTER_WINDOW_MS))
+    ) {
+      return sendError(
+        res,
+        'Too many account registrations from this address. Please try again later.',
+        undefined,
+        429
+      );
+    }
+
     const parseResult = registerSchema.safeParse(req.body);
     if (!parseResult.success) {
       const formattedErrors: Record<string, string[]> = {};
@@ -243,6 +267,23 @@ router.post('/login', async (req: AuthenticatedRequest, res: Response) => {
     }
 
     const { email, password } = parseResult.data;
+    const loginEmailKey = `login:${email.toLowerCase().trim()}`;
+    const loginIpKey = `login-ip:${req.ip || 'unknown'}`;
+
+    // Brute-force guard: cap failed login attempts per email and per IP. A
+    // successful login resets the counters below.
+    if (
+      !loginLimiter.allow(loginEmailKey, LOGIN_MAX, LOGIN_WINDOW_MS) ||
+      !loginLimiter.allow(loginIpKey, LOGIN_MAX, LOGIN_WINDOW_MS)
+    ) {
+      return sendError(
+        res,
+        'Too many failed login attempts. Please wait a few minutes and try again.',
+        undefined,
+        429
+      );
+    }
+
     const user = await prisma.user.findUnique({ where: { email } });
 
     if (!user) {
@@ -253,6 +294,10 @@ router.post('/login', async (req: AuthenticatedRequest, res: Response) => {
     if (!isMatch) {
       return sendError(res, 'Invalid email or password', undefined, 401);
     }
+
+    // Successful login — clear the failed-attempt buckets for this user/IP.
+    loginLimiter.reset(loginEmailKey);
+    loginLimiter.reset(loginIpKey);
 
     // Part B: unverified accounts cannot log in. We re-send the OTP (rate
     // limited) so they can enter their code and activate the account.
@@ -549,19 +594,29 @@ router.put('/profile', requireAuth, async (req: AuthenticatedRequest, res: Respo
 
     const dataToUpdate: any = {};
     if (typeof name === 'string' && name.trim()) {
-      dataToUpdate.name = name.trim();
+      const trimmed = name.trim();
+      if (trimmed.length > 80) return sendError(res, 'Name must be 80 characters or fewer', undefined, 400);
+      dataToUpdate.name = trimmed;
     }
     if (typeof companyName === 'string') {
-      dataToUpdate.companyName = companyName.trim() || null;
+      const trimmed = companyName.trim();
+      if (trimmed.length > 120) return sendError(res, 'Company name must be 120 characters or fewer', undefined, 400);
+      dataToUpdate.companyName = trimmed || null;
     }
     if (typeof bio === 'string') {
-      dataToUpdate.bio = bio.trim() || null;
+      const trimmed = bio.trim();
+      if (trimmed.length > 500) return sendError(res, 'Bio must be 500 characters or fewer', undefined, 400);
+      dataToUpdate.bio = trimmed || null;
     }
     if (typeof skills === 'string') {
-      dataToUpdate.skills = skills.trim() || null;
+      const trimmed = skills.trim();
+      if (trimmed.length > 1000) return sendError(res, 'Skills must be 1000 characters or fewer', undefined, 400);
+      dataToUpdate.skills = trimmed || null;
     }
     if (typeof avatarUrl === 'string' && avatarUrl.trim()) {
-      dataToUpdate.avatarUrl = avatarUrl.trim();
+      const trimmed = avatarUrl.trim();
+      if (trimmed.length > 2000) return sendError(res, 'Avatar URL must be 2000 characters or fewer', undefined, 400);
+      dataToUpdate.avatarUrl = trimmed;
     }
 
     // Feature 1: allow completing/updating the company profile on the profile
@@ -610,46 +665,47 @@ router.put('/profile', requireAuth, async (req: AuthenticatedRequest, res: Respo
   }
 });
 
-// POST /api/auth/google/verify - Authenticates a real Google account
+// POST /api/auth/google/verify - Authenticates a real Google account.
+// CRITICAL: the Google ID token must be verified SERVER-SIDE (signature,
+// issuer, audience, expiry) before any account lookup or session issuance.
+// Client-supplied email/name are never trusted; identity comes only from the
+// verified token claims.
 router.post('/google/verify', async (req: AuthenticatedRequest, res: Response) => {
   try {
-    let { email, name, avatarUrl, credential, role } = req.body;
-    let emailVerified: boolean | undefined;
+    const { role } = req.body;
+    const credential = req.body?.credential;
 
-    if (credential) {
-      try {
-        const parts = credential.split('.');
-        if (parts.length === 3) {
-          const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString('utf-8'));
-          if (payload.email) {
-            email = payload.email;
-            name = payload.name || name;
-            avatarUrl = payload.picture || avatarUrl;
-            emailVerified = payload.email_verified === true;
-          }
-        }
-      } catch (e) {
-        console.warn('Could not decode Google credential JWT:', e);
-      }
-
-      // Feature 3: On the real Google OAuth callback we MUST have an authentic,
-      // email-verified payload. Unverified / spoofed payloads are rejected before
-      // any session or account is created.
-      if (!emailVerified) {
-        return sendError(
-          res,
-          'Your Google account email is not verified. Please verify your email with Google and try again.',
-          { email: ['Google email_verified flag is false or missing.'] },
-          401
-        );
-      }
+    if (!credential || typeof credential !== 'string' || !credential.trim()) {
+      return sendError(
+        res,
+        'Google sign-in requires a Google ID token. Please continue with the Google button.',
+        { credential: ['A Google ID token (credential) is required.'] },
+        400
+      );
     }
 
-    if (!email || typeof email !== 'string' || !email.includes('@')) {
-      return sendError(res, 'A valid Google email address is required', undefined, 400);
+    const identity = await verifyGoogleIdToken(credential);
+    if (!identity) {
+      return sendError(
+        res,
+        'Google account could not be verified. Please try again.',
+        { credential: ['Google ID token verification failed.'] },
+        401
+      );
+    }
+    if (!identity.emailVerified) {
+      return sendError(
+        res,
+        'Your Google account email is not verified. Please verify your email with Google and try again.',
+        { email: ['Google email_verified flag is false or missing.'] },
+        401
+      );
     }
 
-    email = email.toLowerCase().trim();
+    // Verified identity (Google-signed) is the only source of truth here.
+    const email = identity.email;
+    const name = identity.name;
+    const avatarUrl = identity.picture;
 
     // Feature 3: block disposable / temporary domains even if the Google payload
     // was verified (defense in depth, cannot be bypassed from the client).
@@ -691,10 +747,10 @@ router.post('/google/verify', async (req: AuthenticatedRequest, res: Response) =
           avatarUrl: avatarUrl || `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(email)}`,
           kycStatus: 'VERIFIED',
           status: 'ACTIVE',
-          // Part B: Google accounts are email-verified by Google itself
-          // (enforced above); the OTP loop is skipped and the account starts
-          // fully verified.
-          emailVerified: true,
+          // Part C: Google verified the mailbox, but TaskHub still owns account
+          // activation — a new OAuth signup is created unverified and must prove
+          // ownership of the inbox with a TaskHub OTP before logging in.
+          emailVerified: false,
           wallet: {
             create: {
               availableBalance: 0.0,
@@ -707,12 +763,21 @@ router.post('/google/verify', async (req: AuthenticatedRequest, res: Response) =
       });
     }
 
-    // Part B: continued Google sign-in is proof enough of a deliverable,
-    // Google-verified mailbox — resolve any pre-existing flagged account.
+    // Part C: an account that has not completed TaskHub OTP verification cannot
+    // receive a session, whether it was just created or predates this change.
     if (!user.emailVerified) {
-      user = await prisma.user.update({
-        where: { id: user.id },
-        data: { emailVerified: true },
+      await sendVerificationOtp(res, req.ip || 'unknown', { id: user.id, email: user.email });
+      return sendSuccess(res, 'Google account created. Verify your email with the OTP we sent.', {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        emailVerified: false,
+        pendingEmailVerification: true,
+        companyProfile: user.companyProfile,
+        approvalStatus: user.approvalStatus,
+        kycVerified: user.kycStatus === 'VERIFIED',
+        createdAt: user.createdAt,
       });
     }
 
@@ -739,14 +804,20 @@ router.post('/google/verify', async (req: AuthenticatedRequest, res: Response) =
   }
 });
 
-// GET /api/auth/google/connect
+// GET /api/auth/google/connect — compatibility passthrough for the Google
+// redirect flow. The real, Google-verified `credential` query param is forwarded
+// to the hardened /api/google/connect handler; nothing else (email, name,
+// email_verified) is ever forwarded or trusted.
 router.get('/google/connect', (req: AuthenticatedRequest, res: Response) => {
-  const email = req.query.email as string;
   const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
-  if (!email) {
+  const credential = typeof req.query.credential === 'string' ? req.query.credential : '';
+  const role = typeof req.query.role === 'string' ? req.query.role : '';
+  if (!credential) {
     return res.redirect(`${FRONTEND_URL}/login?prompt_google=true`);
   }
-  return res.redirect(`/api/google/connect?email=${encodeURIComponent(email)}`);
+  const params = new URLSearchParams({ credential });
+  if (role) params.set('role', role);
+  return res.redirect(`/api/google/connect?${params.toString()}`);
 });
 
 // GET /api/auth/google/config - exposes the Google client ID to the frontend

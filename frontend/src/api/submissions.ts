@@ -29,6 +29,10 @@ export const submissionsApi = {
     return apiRequest(() => api.post(`/submissions/${submissionId}/review`, payload));
   },
 
+  markPaid: async (submissionId: string): Promise<ApiResponse<Submission>> => {
+    return apiRequest(() => api.post(`/submissions/${submissionId}/mark-paid`));
+  },
+
   uploadProofFile: async (file: File): Promise<ApiResponse<{ fileUrl: string; filename: string }>> => {
     const formData = new FormData();
     formData.append('file', file);

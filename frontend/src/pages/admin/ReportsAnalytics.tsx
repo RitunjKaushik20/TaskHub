@@ -63,22 +63,25 @@ const ReportsAnalytics: React.FC = () => {
 
   return (
     <div className="space-y-8">
+      {error && (
+        <p className="text-xs text-moss-deep mb-4">Failed to load live reports: {error}</p>
+      )}
       <div>
-        <h1 className="text-2xl font-extrabold text-white">Platform System Analytics</h1>
-        <p className="text-xs text-slate-400">
+        <h1 className="text-2xl font-extrabold text-ink-text">Platform System Analytics</h1>
+        <p className="text-xs text-ink-muted">
           Live registration growth reported from the database — zero fabricated figures.
         </p>
       </div>
 
       {/* Real registration growth (Workers vs Businesses, month over month) */}
-      <div className="p-6 rounded-3xl glass-panel border border-slate-800 space-y-4">
-        <h3 className="text-sm font-bold text-white flex items-center gap-2">
-          <Users className="w-4 h-4 text-brand-accent" /> Active User Registration Growth (Workers vs Businesses)
+      <div className="p-6 rounded-3xl glass-panel border border-hairline space-y-4">
+        <h3 className="text-sm font-bold text-ink-text flex items-center gap-2">
+          <Users className="w-4 h-4 text-moss-deep" /> Active User Registration Growth (Workers vs Businesses)
         </h3>
         {loading ? (
-          <p className="text-xs text-slate-400">Loading registration growth…</p>
+          <p className="text-xs text-ink-muted">Loading registration growth…</p>
         ) : isZeroState && growth.length === 0 ? (
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-ink-muted">
             Zero-state: no workers or businesses have registered yet. The chart stays
             empty (a clean $0 / 0 platform) until the first real registration lands —
             then it appears here in real time via Socket.IO.
@@ -87,12 +90,12 @@ const ReportsAnalytics: React.FC = () => {
           <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={growth}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                <XAxis dataKey="month" stroke="#94a3b8" fontSize={11} />
-                <YAxis stroke="#94a3b8" fontSize={11} />
-                <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '12px', fontSize: '12px' }} />
-                <Bar dataKey="workers" fill="#10b981" radius={[6, 6, 0, 0]} name="Workers" />
-                <Bar dataKey="businesses" fill="#6366f1" radius={[6, 6, 0, 0]} name="Businesses" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#DCDFC9" />
+                <XAxis dataKey="month" stroke="#5C6152" fontSize={11} />
+                <YAxis stroke="#5C6152" fontSize={11} />
+                <Tooltip contentStyle={{ backgroundColor: '#FAFAF6', borderColor: '#DCDFC9', borderRadius: '12px', fontSize: '12px' }} />
+                <Bar dataKey="workers" fill="#636B2F" radius={[6, 6, 0, 0]} name="Workers" />
+                <Bar dataKey="businesses" fill="#BAC095" radius={[6, 6, 0, 0]} name="Businesses" />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -100,12 +103,12 @@ const ReportsAnalytics: React.FC = () => {
       </div>
 
       {/* Platform ops health signal — real, never fabricated */}
-      <div className="p-6 rounded-3xl glass-panel border border-slate-800 space-y-2">
-        <h3 className="text-sm font-bold text-white flex items-center gap-2">
-          <TrendingUp className="w-4 h-4 text-purple-400" /> Platform Operations
+      <div className="p-6 rounded-3xl glass-panel border border-hairline space-y-2">
+        <h3 className="text-sm font-bold text-ink-text flex items-center gap-2">
+          <TrendingUp className="w-4 h-4 text-moss-primary" /> Platform Operations
         </h3>
-        <p className="text-xs text-slate-400 flex items-center gap-1.5">
-          <Activity className="w-3.5 h-3.5 text-emerald-400" />
+        <p className="text-xs text-ink-muted flex items-center gap-1.5">
+          <Activity className="w-3.5 h-3.5 text-moss-deep" />
           {stats.platformHealth?.lastDbWriteAt
             ? `Last successful platform DB write: ${new Date(stats.platformHealth.lastDbWriteAt).toLocaleString()}.`
             : 'No platform writes yet — a fresh, empty platform.'}

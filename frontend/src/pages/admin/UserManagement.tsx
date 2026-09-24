@@ -42,12 +42,12 @@ const UserManagement: React.FC = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-extrabold text-white">User Management & Moderation</h1>
-        <p className="text-xs text-slate-400">Filter platform users by role, inspect KYC state, and freeze/suspend accounts.</p>
+        <h1 className="text-2xl font-extrabold text-ink-text">User Management & Moderation</h1>
+        <p className="text-xs text-ink-muted">Filter platform users by role, inspect KYC state, and freeze/suspend accounts.</p>
       </div>
 
-      <div className="flex items-center justify-between gap-4 p-4 rounded-2xl glass-panel border border-slate-800">
-        <span className="text-xs font-semibold text-slate-300">Filter by Account Role:</span>
+      <div className="flex items-center justify-between gap-4 p-4 rounded-2xl glass-panel border border-hairline">
+        <span className="text-xs font-semibold text-ink-muted">Filter by Account Role:</span>
         <div className="flex gap-2">
           {['ALL', 'WORKER', 'BUSINESS', 'ADMIN'].map((role) => (
             <button
@@ -55,8 +55,8 @@ const UserManagement: React.FC = () => {
               onClick={() => setRoleFilter(role)}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
                 roleFilter === role
-                  ? 'bg-purple-600 text-white shadow-md'
-                  : 'bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800'
+                  ? 'bg-moss-primary text-white shadow-md'
+                  : 'bg-moss-sage text-ink-text hover:bg-moss-sage border border-hairline'
               }`}
             >
               {role}
@@ -65,9 +65,9 @@ const UserManagement: React.FC = () => {
         </div>
       </div>
 
-      <div className="overflow-x-auto rounded-2xl glass-panel border border-slate-800">
-        <table className="w-full text-left text-xs text-slate-300">
-          <thead className="bg-slate-950/80 text-slate-400 border-b border-slate-800 uppercase font-semibold">
+      <div className="overflow-x-auto rounded-2xl glass-panel border border-hairline">
+        <table className="w-full text-left text-xs text-ink-muted">
+          <thead className="bg-moss-sage text-ink-muted border-b border-hairline uppercase font-semibold">
             <tr>
               <th className="p-4">User</th>
               <th className="p-4">Role</th>
@@ -77,47 +77,47 @@ const UserManagement: React.FC = () => {
               <th className="p-4 text-right">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-800">
+          <tbody className="divide-y divide-hairline">
             {isLoading ? (
               <tr>
-                <td colSpan={6} className="p-8 text-center text-slate-500">
+                <td colSpan={6} className="p-8 text-center text-ink-muted">
                   Loading users...
                 </td>
               </tr>
             ) : filteredUsers.length === 0 ? (
               <tr>
-                <td colSpan={6} className="p-8 text-center text-slate-500">
+                <td colSpan={6} className="p-8 text-center text-ink-muted">
                   No users found in this role category.
                 </td>
               </tr>
             ) : (
               filteredUsers.map((u) => (
-                <tr key={u.id} className="hover:bg-slate-900/40 transition-colors">
+                <tr key={u.id} className="hover:bg-paper-bg transition-colors">
                   <td className="p-4">
-                    <div className="font-bold text-white">{u.name}</div>
-                    <div className="text-slate-500 text-[10px]">{u.email}</div>
+                    <div className="font-bold text-ink-text">{u.name}</div>
+                    <div className="text-ink-muted text-[10px]">{u.email}</div>
                   </td>
                   <td className="p-4">
-                    <span className="px-2 py-0.5 rounded bg-slate-800 text-[10px] font-semibold text-slate-300">
+                    <span className="px-2 py-0.5 rounded bg-moss-sage text-[10px] font-semibold text-ink-muted">
                       {u.role}
                     </span>
                   </td>
                   <td className="p-4">
                     <span
                       className={`inline-flex items-center gap-1 text-[10px] font-bold ${
-                        u.kycStatus === 'VERIFIED' ? 'text-emerald-400' : 'text-amber-400'
+                        u.kycStatus === 'VERIFIED' ? 'text-moss-deep' : 'text-moss-primary'
                       }`}
                     >
                       <ShieldCheck className="w-3 h-3" /> {u.kycStatus}
                     </span>
                   </td>
-                  <td className="p-4 text-slate-400">{u.joinedDate}</td>
+                  <td className="p-4 text-ink-muted">{u.joinedDate}</td>
                   <td className="p-4">
                     <span
                       className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
                         u.status === 'ACTIVE'
-                          ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
-                          : 'bg-rose-500/10 text-rose-400 border border-rose-500/30'
+                          ? 'bg-moss-primary/10 text-moss-deep border border-moss-primary/30'
+                          : 'bg-moss-sage/30 text-moss-deep border border-moss-deep/30'
                       }`}
                     >
                       {u.status}
@@ -128,8 +128,8 @@ const UserManagement: React.FC = () => {
                       onClick={() => handleStatusToggle(u.id, u.status)}
                       className={`px-3 py-1 rounded-lg text-[10px] font-bold transition-all ${
                         u.status === 'ACTIVE'
-                          ? 'bg-rose-500/20 text-rose-300 hover:bg-rose-500/30 border border-rose-500/30'
-                          : 'bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 border border-emerald-500/30'
+                          ? 'bg-moss-sage/30 hover:bg-moss-sage text-moss-deep border border-moss-deep/30'
+                          : 'bg-moss-primary/15 hover:bg-moss-primary/25 text-moss-deep border border-moss-primary/30'
                       }`}
                     >
                       {u.status === 'ACTIVE' ? 'Suspend' : 'Activate'}
